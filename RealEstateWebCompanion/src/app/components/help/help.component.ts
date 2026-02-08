@@ -38,7 +38,7 @@ export class HelpComponent implements OnInit {
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
-    this.http.get<AppVersion>('/assets/data/appversion.json').subscribe({
+    this.http.get<AppVersion>('assets/data/appversion.json').subscribe({
       next: (data) => this.appVersion = data,
       error: (err) => console.error('Failed to load version info:', err)
     });

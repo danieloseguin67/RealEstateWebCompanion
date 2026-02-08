@@ -30,7 +30,7 @@ export class AuthService {
   }
 
   private loadCustomers(): void {
-    this.http.get<{ customers: Customer[] }>("/assets/data/customer.json").subscribe({
+    this.http.get<{ customers: Customer[] }>("assets/data/customer.json").subscribe({
       next: (data) => {
         this.customersSubject.next(data.customers || []);
         this.customersLoadedSubject.next(true);
@@ -53,7 +53,7 @@ export class AuthService {
     if (!customers || customers.length === 0) {
       try {
         const data = await firstValueFrom(
-          this.http.get<{ customers: Customer[] }>("/assets/data/customer.json")
+          this.http.get<{ customers: Customer[] }>("assets/data/customer.json")
         );
         customers = data.customers || [];
         this.customersSubject.next(customers);
