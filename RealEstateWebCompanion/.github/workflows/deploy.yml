@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: .
+        working-directory: ./RealEstateWebCompanion
 
     steps:
       - name: Checkout repository
@@ -31,6 +31,7 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
+          cache-dependency-path: './RealEstateWebCompanion/package-lock.json'
 
       - name: Install dependencies
         run: npm ci
