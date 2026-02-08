@@ -1,0 +1,156 @@
+[
+  {
+    "id": "apt_001",
+    "title": "123 Main St, Montreal (Downtown)",
+    "titleEn": "123 Main St, Montreal (Downtown)",
+    "unit_type_name": "2 Bedroom",
+    "bathrooms": 1.0,
+    "squareFootage": 850,
+    "price": 1500.0,
+    "area": "downtown",
+    "furnished": false,
+    "roomtorent": false,
+    "condorentals": false,
+    "available": true,
+    "description": "Beautiful downtown apartment with modern amenities",
+    "descriptionEn": "Beautiful downtown apartment with modern amenities",
+    "features": [
+      "Parking",
+      "Gym",
+      "Balcony"
+    ],
+    "featuresEn": [
+      "Parking",
+      "Gym",
+      "Balcony"
+    ],
+    "images": [
+      "apt001_1.jpg",
+      "apt001_2.jpg"
+    ],
+    "toggle_names": []
+  },
+  {
+    "id": "apt_002",
+    "title": "456 Oak Ave, Montreal (Plateau)",
+    "titleEn": "456 Oak Ave, Montreal (Plateau)",
+    "unit_type_name": "3 Bedroom",
+    "bathrooms": 2.0,
+    "squareFootage": 1100,
+    "price": 2000.0,
+    "area": "plateau",
+    "furnished": false,
+    "roomtorent": false,
+    "condorentals": false,
+    "available": true,
+    "description": "Spacious apartment in vibrant Plateau neighborhood",
+    "descriptionEn": "Spacious apartment in vibrant Plateau neighborhood",
+    "features": [
+      "Parking",
+      "Pet Friendly",
+      "Laundry"
+    ],
+    "featuresEn": [
+      "Parking",
+      "Pet Friendly",
+      "Laundry"
+    ],
+    "images": [
+      "apt002_1.jpg",
+      "apt002_2.jpg",
+      "apt002_3.jpg"
+    ],
+    "toggle_names": []
+  },
+  {
+    "id": "apt_003",
+    "title": "789 Elm Street, Montreal (Westmount)",
+    "titleEn": "789 Elm Street, Montreal (Westmount)",
+    "unit_type_name": "Studio",
+    "bathrooms": 1.0,
+    "squareFootage": 500,
+    "price": 1200.0,
+    "area": "westmount",
+    "furnished": true,
+    "roomtorent": false,
+    "condorentals": false,
+    "available": false,
+    "description": "Cozy studio in prestigious Westmount area",
+    "descriptionEn": "Cozy studio in prestigious Westmount area",
+    "features": [
+      "Furnished",
+      "Internet included"
+    ],
+    "featuresEn": [
+      "Furnished",
+      "Internet included"
+    ],
+    "images": [
+      "apt003_1.jpg"
+    ],
+    "toggle_names": []
+  },
+  {
+    "id": "apt_004",
+    "title": "321 Maple Drive, Montreal (Old Montreal)",
+    "titleEn": "321 Maple Drive, Montreal (Old Montreal)",
+    "unit_type_name": "1 Bedroom",
+    "bathrooms": 1.0,
+    "squareFootage": 650,
+    "price": 1350.0,
+    "area": "old-montreal",
+    "furnished": false,
+    "roomtorent": false,
+    "condorentals": false,
+    "available": true,
+    "description": "Charming loft in historic Old Montreal",
+    "descriptionEn": "Charming loft in historic Old Montreal",
+    "features": [
+      "Balcony",
+      "Dishwasher"
+    ],
+    "featuresEn": [
+      "Balcony",
+      "Dishwasher"
+    ],
+    "images": [
+      "apt004_1.jpg",
+      "apt004_2.jpg"
+    ],
+    "toggle_names": []
+  },
+  {
+    "id": "apt_005",
+    "title": "654 Pine Road, Montreal (Mile End)",
+    "titleEn": "654 Pine Road, Montreal (Mile End)",
+    "unit_type_name": "2 Bedroom",
+    "bathrooms": 1.5,
+    "squareFootage": 900,
+    "price": 1750.0,
+    "area": "mile-end",
+    "furnished": false,
+    "roomtorent": true,
+    "condorentals": false,
+    "available": true,
+    "description": "Trendy apartment in artistic Mile End",
+    "descriptionEn": "Trendy apartment in artistic Mile End",
+    "features": [
+      "Parking",
+      "Gym",
+      "Laundry",
+      "Balcony"
+    ],
+    "featuresEn": [
+      "Parking",
+      "Gym",
+      "Laundry",
+      "Balcony"
+    ],
+    "images": [
+      "apt005_1.jpg",
+      "apt005_2.jpg",
+      "apt005_3.jpg"
+    ],
+    "toggle_names": []
+  }
+]

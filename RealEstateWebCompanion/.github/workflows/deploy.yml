@@ -1,0 +1,37 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build
+        run: npm run build -- --configuration production --base-href=/webcompanion/
+        
+      - name: Copy index.html to 404.html for SPA routing
+        run: cp ./dist/real-estate-web-companion/browser/index.html ./dist/real-estate-web-companion/browser/404.html
+        
+      - name: Add .nojekyll file
+        run: touch ./dist/real-estate-web-companion/browser/.nojekyll
+        
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist/real-estate-web-companion/browser

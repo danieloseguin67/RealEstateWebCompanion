@@ -1,0 +1,269 @@
+<div class="listings">
+  <div class="header">
+    <h2>Listings Management</h2>
+    <div class="actions">
+      <button class="btn btn-success" (click)="addRow()">
+        + Add Listing
+      </button>
+      <button class="btn btn-primary" (click)="exportData()">
+        Export Apartments (JSON)
+      </button>
+      <button class="btn btn-warning" (click)="resetToDefault()">
+        Reset to Default
+      </button>
+      <label class="btn btn-secondary">
+        Import Apartments (JSON)
+        <input type="file" accept=".json" (change)="importData($event)" style="display: none;">
+      </label>
+    </div>
+  </div>
+  <ag-grid-angular
+    style="width: 100%; height: 600px;"
+    class="ag-theme-alpine"
+    [rowData]="rowData"
+    [columnDefs]="colDefs"
+    [defaultColDef]="defaultColDef"
+    [gridOptions]="gridOptions"
+    (gridReady)="onGridReady($event)"
+    (cellValueChanged)="onCellValueChanged($event)"
+  />
+  
+  <!-- Edit Modal -->
+  <div class="modal-overlay" *ngIf="showEditModal" (click)="closeEditModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Apartment Details</h3>
+        <button class="close-btn" (click)="closeEditModal()">×</button>
+      </div>
+      
+      <!-- Tabs -->
+      <div class="tabs">
+        <button 
+          class="tab-btn" 
+          [class.active]="activeTab === 'basic'"
+          (click)="setActiveTab('basic')">
+          Basic Info
+        </button>
+        <button 
+          class="tab-btn" 
+          [class.active]="activeTab === 'details'"
+          (click)="setActiveTab('details')">
+          Details
+        </button>
+        <button 
+          class="tab-btn" 
+          [class.active]="activeTab === 'features'"
+          (click)="setActiveTab('features')">
+          Features
+        </button>
+        <button 
+          class="tab-btn" 
+          [class.active]="activeTab === 'images'"
+          (click)="setActiveTab('images')">
+          Images
+        </button>
+      </div>
+      
+      <div class="modal-body" *ngIf="editingApartment">
+        <!-- Basic Info Tab -->
+        <div class="tab-content" *ngIf="activeTab === 'basic'">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>ID:</label>
+              <input type="text" [(ngModel)]="editingApartment.id" readonly>
+            </div>
+            
+            <div class="form-group">
+              <label>Title (French):</label>
+              <input type="text" [(ngModel)]="editingApartment.title">
+            </div>
+            
+            <div class="form-group">
+              <label>Title (English):</label>
+              <input type="text" [(ngModel)]="editingApartment.titleEn">
+            </div>
+            
+            <div class="form-group">
+              <label>Unit Type *:</label>
+              <select [(ngModel)]="editingApartment.unit_type_name">
+                <option value="">Select unit type</option>
+                <option *ngFor="let type of availableUnitTypes" [value]="type">{{ type }}</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label>Bathrooms:</label>
+              <input type="number" step="0.5" [(ngModel)]="editingApartment.bathrooms">
+            </div>
+            
+            <div class="form-group">
+              <label>Square Footage:</label>
+              <input type="number" [(ngModel)]="editingApartment.squareFootage">
+            </div>
+            
+            <div class="form-group">
+              <label>Price ($):</label>
+              <input type="number" step="0.01" [(ngModel)]="editingApartment.price">
+            </div>
+            
+            <div class="form-group">
+              <label>Area:</label>
+              <select [(ngModel)]="editingApartment.area">
+                <option value="">Select area</option>
+                <option *ngFor="let area of availableAreas" [value]="area">{{ area }}</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="property-attributes">
+            <h4>Property Attributes</h4>
+            <div class="checkbox-group">
+              <label>
+                <input type="checkbox" [(ngModel)]="editingApartment.furnished">
+                Furnished
+              </label>
+              <label>
+                <input type="checkbox" [(ngModel)]="editingApartment.roomtorent">
+                Room to rent
+              </label>
+              <label>
+                <input type="checkbox" [(ngModel)]="editingApartment.condorentals">
+                Condo Rentals
+              </label>
+              <label>
+                <input type="checkbox" [(ngModel)]="editingApartment.available">
+                Available
+              </label>
+            </div>
+          </div>
+          
+          <div class="property-attributes">
+            <h4>Amenities</h4>
+            <div class="amenities-list">
+              <label *ngFor="let toggle of availableToggles" class="amenity-item">
+                <input 
+                  type="checkbox" 
+                  [checked]="isFeatureSelected(toggle)"
+                  (change)="toggleFeature(toggle)">
+                <span>{{ toggle }}</span>
+              </label>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Details Tab -->
+        <div class="tab-content" *ngIf="activeTab === 'details'">
+          <div class="form-group">
+            <label>Description (French):</label>
+            <textarea rows="8" [(ngModel)]="editingApartment.description"></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label>Description (English):</label>
+            <textarea rows="8" [(ngModel)]="editingApartment.descriptionEn"></textarea>
+          </div>
+        </div>
+        
+        <!-- Features Tab -->
+        <div class="tab-content" *ngIf="activeTab === 'features'">
+          <div class="features-section">
+            <h4>Features (French)</h4>
+            <div class="feature-input-group">
+              <input 
+                type="text" 
+                [(ngModel)]="newFeatureFr" 
+                placeholder="Enter feature in French"
+                (keyup.enter)="addFeature('fr')">
+              <button class="btn btn-success" (click)="addFeature('fr')">Add</button>
+            </div>
+            <div class="features-list">
+              <div *ngFor="let feature of editingApartment.features; let i = index" class="feature-item">
+                <input 
+                  type="text" 
+                  [(ngModel)]="editingApartment.features[i]" 
+                  class="feature-edit-input">
+                <button class="btn btn-secondary" (click)="editFeature(i, 'fr')">Edit</button>
+                <button class="btn btn-danger" (click)="removeFeature(i, 'fr')">Remove</button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="features-section">
+            <h4>Features (English)</h4>
+            <div class="feature-input-group">
+              <input 
+                type="text" 
+                [(ngModel)]="newFeatureEn" 
+                placeholder="Enter feature in English"
+                (keyup.enter)="addFeature('en')">
+              <button class="btn btn-success" (click)="addFeature('en')">Add</button>
+            </div>
+            <div class="features-list">
+              <div *ngFor="let feature of editingApartment.featuresEn; let i = index" class="feature-item">
+                <input 
+                  type="text" 
+                  [(ngModel)]="editingApartment.featuresEn[i]" 
+                  class="feature-edit-input">
+                <button class="btn btn-secondary" (click)="editFeature(i, 'en')">Edit</button>
+                <button class="btn btn-danger" (click)="removeFeature(i, 'en')">Remove</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Images Tab -->
+        <div class="tab-content" *ngIf="activeTab === 'images'">
+          <div class="image-upload">
+            <div class="form-group">
+              <label>Add Image URL:</label>
+              <div class="input-with-button">
+                <input 
+                  type="text" 
+                  [(ngModel)]="newImageUrl" 
+                  placeholder="Enter image URL"
+                  (keyup.enter)="addImage()">
+                <button class="btn btn-success" (click)="addImage()">Add Image</button>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>Or Upload from Computer:</label>
+              <div class="file-upload-wrapper">
+                <label class="btn btn-primary file-upload-btn">
+                  Browse Files...
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    multiple
+                    (change)="onFileSelected($event)" 
+                    style="display: none;">
+                </label>
+                <span class="file-info">Supports multiple image files (JPG, PNG, etc.)</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="images-preview">
+            <h4>Current Images ({{ editingApartment.images.length || 0 }})</h4>
+            <div class="image-list">
+              <div 
+                *ngFor="let image of editingApartment.images; let i = index" 
+                class="image-list-item">
+                <span class="image-name">{{ image }}</span>
+                <button class="btn btn-sm btn-danger" (click)="removeImage(i)">Remove</button>
+              </div>
+            </div>
+            <div *ngIf="!editingApartment.images || editingApartment.images.length === 0" class="no-images">
+              No images added yet
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeEditModal()">Cancel</button>
+        <button class="btn btn-primary" (click)="saveEdit()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+</div>

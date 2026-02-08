@@ -1,0 +1,37 @@
+[
+  {
+    "id": 1,
+    "nameFr": "Centre-ville",
+    "nameEn": "Downtown",
+    "descriptionEn": "Heart of the city with business district",
+    "link": "downtown"
+  },
+  {
+    "id": 2,
+    "nameFr": "Le Plateau",
+    "nameEn": "Plateau",
+    "descriptionEn": "Artistic and cultural neighborhood",
+    "link": "plateau"
+  },
+  {
+    "id": 3,
+    "nameFr": "Westmount",
+    "nameEn": "Westmount",
+    "descriptionEn": "Upscale residential area",
+    "link": "westmount"
+  },
+  {
+    "id": 4,
+    "nameFr": "Vieux-Montréal",
+    "nameEn": "Old Montreal",
+    "descriptionEn": "Historic district with cobblestone streets",
+    "link": "old-montreal"
+  },
+  {
+    "id": 5,
+    "nameFr": "Mile End",
+    "nameEn": "Mile End",
+    "descriptionEn": "Trendy neighborhood with cafes and galleries",
+    "link": "mile-end"
+  }
+]

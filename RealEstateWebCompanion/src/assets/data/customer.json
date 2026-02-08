@@ -1,0 +1,25 @@
+{
+  "customers": [
+    {
+      "customerId": "CUST-1001",
+      "customerName": "Jane Doe",
+      "customerEmail": "jane.doe@example.com",
+      "userId": "jane.doe",
+      "password": "HwYRCh4dOC4oVwQLJQ=="
+    },
+    {
+      "customerId": "CUST-1002",
+      "customerName": "Daniel Seguin",
+      "customerEmail": "daniel@seguin.dev",
+      "userId": "daniel.seguin",
+      "password": "FgQLASAHRlFGRw=="
+    },
+    {
+      "customerId": "CUST-1003",
+      "customerName": "Jessica Larmour",
+      "customerEmail": "larmour.j.a@gmail.com",
+      "userId": "jessica.larmour",
+      "password": "MQAXXn0/ERdQ"
+    }
+  ]
+}

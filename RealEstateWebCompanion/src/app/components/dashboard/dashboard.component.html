@@ -1,0 +1,42 @@
+<div class="dashboard">
+  <div class="header">
+    <h2>Dashboard</h2>
+    @if (customer) {
+      <p class="welcome">Welcome, {{ customer.customerName }}!</p>
+    }
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <h3>Total Listings</h3>
+      <p class="stat-value">{{ stats.totalListings }}</p>
+    </div>
+    <div class="stat-card">
+      <h3>Available</h3>
+      <p class="stat-value">{{ stats.availableListings }}</p>
+    </div>
+    <div class="stat-card">
+      <h3>Areas</h3>
+      <p class="stat-value">{{ stats.totalAreas }}</p>
+    </div>
+    <div class="stat-card">
+      <h3>Avg Rental</h3>
+      <p class="stat-value">${{ stats.averageRental }}</p>
+    </div>
+  </div>
+
+  <div class="recent-section">
+    <h3>Recent Listings</h3>
+    <div class="listings-preview">
+      @for (apt of apartments.slice(0, 5); track apt.id) {
+        <div class="listing-card">
+          <h4>{{ apt.title }}</h4>
+          <p>{{ apt.area }} - ${{ apt.price }}/month</p>
+          <span class="badge" [class.available]="apt.available" [class.unavailable]="!apt.available">
+            {{ apt.available ? 'Available' : 'Unavailable' }}
+          </span>
+        </div>
+      }
+    </div>
+  </div>
+</div>

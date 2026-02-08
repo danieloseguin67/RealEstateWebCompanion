@@ -1,0 +1,106 @@
+<div class="help-container">
+  <h2>Help</h2>
+
+  <div class="tabs">
+    <button 
+      class="tab-button" 
+      [class.active]="activeTab === 'about'"
+      (click)="setActiveTab('about')">
+      About App
+    </button>
+    <button 
+      class="tab-button" 
+      [class.active]="activeTab === 'support'"
+      (click)="setActiveTab('support')">
+      Support
+    </button>
+  </div>
+
+  <div class="tab-content">
+    @if (activeTab === 'about') {
+      <div class="about-section">
+        <h3>About This Application</h3>
+        @if (appVersion) {
+          <div class="info-grid">
+            <div class="info-item">
+              <strong>Application Name:</strong>
+              <span>{{ appVersion.appName }}</span>
+            </div>
+            <div class="info-item">
+              <strong>Version:</strong>
+              <span>{{ appVersion.version }}</span>
+            </div>
+            <div class="info-item">
+              <strong>Author:</strong>
+              <span>{{ appVersion.author }}</span>
+            </div>
+            <div class="info-item">
+              <strong>Company:</strong>
+              <span>A division of {{ appVersion.company }}</span>
+            </div>
+            <div class="info-item">
+              <strong>Copyright:</strong>
+              <span>&copy; {{ appVersion.copyright }} {{ appVersion.company }}</span>
+            </div>
+          </div>
+        } @else {
+          <p>Loading version information...</p>
+        }
+      </div>
+    }
+
+    @if (activeTab === 'support') {
+      <div class="support-section">
+        <h3>Contact Support</h3>
+        <p>Have a question or issue? Fill out the form below and we'll get back to you.</p>
+        
+        <form class="support-form" (ngSubmit)="submitSupport()">
+          <div class="form-group">
+            <label for="name">Name <span class="required">*</span></label>
+            <input 
+              type="text" 
+              id="name" 
+              [(ngModel)]="supportForm.name" 
+              name="name"
+              required
+              placeholder="Enter your name">
+          </div>
+
+          <div class="form-group">
+            <label for="phone">Phone</label>
+            <input 
+              type="tel" 
+              id="phone" 
+              [(ngModel)]="supportForm.phone" 
+              name="phone"
+              placeholder="Enter your phone number">
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email <span class="required">*</span></label>
+            <input 
+              type="email" 
+              id="email" 
+              [(ngModel)]="supportForm.email" 
+              name="email"
+              required
+              placeholder="Enter your email">
+          </div>
+
+          <div class="form-group">
+            <label for="message">Message <span class="required">*</span></label>
+            <textarea 
+              id="message" 
+              [(ngModel)]="supportForm.message" 
+              name="message"
+              rows="6"
+              required
+              placeholder="Describe your question or issue"></textarea>
+          </div>
+
+          <button type="submit" class="submit-button">Submit</button>
+        </form>
+      </div>
+    }
+  </div>
+</div>
