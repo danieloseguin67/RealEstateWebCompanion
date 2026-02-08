@@ -5,8 +5,8 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
-    "build:prod": "ng build --configuration production --base-href /webcompanion/",
-    "deploy": "ng build --configuration production --base-href /webcompanion/ && npx angular-cli-ghpages --dir=dist/real-estate-web-companion/browser",
+    "build:prod": "ng build --configuration production --base-href /RealEstateWebCompanion/",
+    "deploy": "ng build --configuration production --base-href /RealEstateWebCompanion/ && npx angular-cli-ghpages --dir=dist/real-estate-web-companion/browser",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
