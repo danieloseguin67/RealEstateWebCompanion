@@ -22,7 +22,7 @@ jobs:
         run: npm ci
         
       - name: Build
-        run: npm run build -- --configuration production --base-href=/webcompanion/
+        run: npm run build -- --configuration production --base-href=/RealEstateWebCompanion/
         
       - name: Copy index.html to 404.html for SPA routing
         run: cp ./dist/real-estate-web-companion/browser/index.html ./dist/real-estate-web-companion/browser/404.html
