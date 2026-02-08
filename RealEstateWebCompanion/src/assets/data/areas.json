@@ -1,37 +1,50 @@
-[
-  {
-    "id": 1,
-    "nameFr": "Centre-ville",
-    "nameEn": "Downtown",
-    "descriptionEn": "Heart of the city with business district",
-    "link": "downtown"
-  },
-  {
-    "id": 2,
-    "nameFr": "Le Plateau",
-    "nameEn": "Plateau",
-    "descriptionEn": "Artistic and cultural neighborhood",
-    "link": "plateau"
-  },
-  {
-    "id": 3,
-    "nameFr": "Westmount",
-    "nameEn": "Westmount",
-    "descriptionEn": "Upscale residential area",
-    "link": "westmount"
-  },
-  {
-    "id": 4,
-    "nameFr": "Vieux-Montréal",
-    "nameEn": "Old Montreal",
-    "descriptionEn": "Historic district with cobblestone streets",
-    "link": "old-montreal"
-  },
-  {
-    "id": 5,
-    "nameFr": "Mile End",
-    "nameEn": "Mile End",
-    "descriptionEn": "Trendy neighborhood with cafes and galleries",
-    "link": "mile-end"
-  }
-]
+{
+  "areas": [
+    {
+      "id": "lachine",
+      "name": "Lachine",
+      "nameFr": "Lachine",
+      "nameEn": "Lachine",
+      "description": "Quartier paisible en bordure du fleuve Saint-Laurent et du Canal Lachine",
+      "descriptionEn": "Peaceful neighborhood along the Saint Lawrence River and Lachine Canal",
+      "link": "https://en.wikipedia.org/wiki/Lachine,_Montreal"
+
+    },
+    {
+      "id": "pierrefonds",
+      "name": "Pierrefonds",
+      "nameFr": "Pierrefonds",
+      "nameEn": "Pierrefonds",
+      "description": "Secteur résidentiel familial avec espaces verts",
+      "descriptionEn": "Family-friendly residential area with green spaces",
+      "link": "https://en.wikipedia.org/wiki/Pierrefonds-Roxboro"
+    },
+    {
+      "id": "downtown",
+      "name": "Centre-ville",
+      "nameFr": "Centre-ville",
+      "nameEn": "Downtown",
+      "description": "Cœur urbain dynamique avec toutes les commodités",
+      "descriptionEn": "Dynamic urban heart with all amenities",
+      "link": "https://en.wikipedia.org/wiki/Downtown_Montreal"
+    },
+    {
+      "id": "cote-des-neiges",
+      "name": "Côte-des-Neiges",
+      "nameFr": "Côte-des-Neiges",
+      "nameEn": "Côte-des-Neiges",
+      "description": "Quartier multiculturel près des universités",
+      "descriptionEn": "Multicultural neighborhood near universities",
+      "link": "https://en.wikipedia.org/wiki/C%C3%B4te-des-Neiges"
+    },
+    {
+      "id": "plateau-mont-royal",
+      "name": "Plateau-Mont-Royal",
+      "nameFr": "Plateau-Mont-Royal",
+      "nameEn": "Plateau-Mont-Royal",
+      "description": "Quartier artistique et branché de Montréal",
+      "descriptionEn": "Artistic and trendy neighborhood of Montreal",
+      "link": "https://en.wikipedia.org/wiki/Le_Plateau-Mont-Royal"
+    }
+  ]
+}
