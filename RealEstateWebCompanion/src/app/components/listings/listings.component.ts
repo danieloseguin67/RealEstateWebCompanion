@@ -32,17 +32,17 @@ export class ListingsComponent implements OnInit {
   colDefs: ColDef[] = [
     { 
       headerName: 'Actions', 
-      width: 150, 
+      width: 300, 
       cellRenderer: (params: any) => {
-        return '<button class="edit-btn">Edit</button> <button class="delete-btn">Delete</button>';
+        return '<button class="edit-btn">Edit</button> <button class="remove-btn">Remove</button>';
       },
       editable: false,
       filter: false,
       sortable: false
     },
     { field: 'id', headerName: 'ID', width: 100, filter: 'agTextColumnFilter', sortable: true, editable: true },
-    { field: 'title', headerName: 'Title', width: 300, filter: 'agTextColumnFilter', sortable: true, editable: true },
-    { field: 'titleEn', headerName: 'Title (EN)', width: 300, filter: 'agTextColumnFilter', sortable: true, editable: true },
+    { field: 'title', headerName: 'Title (FR)', width: 900, filter: 'agTextColumnFilter', sortable: true, editable: true },
+    { field: 'titleEn', headerName: 'Title (EN)', width: 900, filter: 'agTextColumnFilter', sortable: true, editable: true },
     { field: 'unit_type_name', headerName: 'Unit Type', width: 130, filter: 'agTextColumnFilter', sortable: true, editable: true },
     { field: 'area', headerName: 'Area', width: 150, filter: 'agTextColumnFilter', sortable: true, editable: true },
     { field: 'price', headerName: 'Price', width: 120, filter: 'agNumberColumnFilter', sortable: true, editable: true, valueFormatter: params => '$' + params.value, valueParser: params => Number(params.newValue) },
@@ -125,7 +125,6 @@ export class ListingsComponent implements OnInit {
   ];
   
   public defaultColDef: ColDef = {
-    flex: 1,
     minWidth: 100,
     resizable: true,
     sortable: true,
@@ -134,8 +133,7 @@ export class ListingsComponent implements OnInit {
   
   gridOptions: GridOptions = {
     pagination: true,
-    paginationPageSize: 10,
-    domLayout: 'autoHeight'
+    paginationPageSize: 15
   };
 
   constructor(
@@ -166,14 +164,13 @@ export class ListingsComponent implements OnInit {
 
   onGridReady(params: any): void {
     this.gridApi = params.api;
-    params.api.sizeColumnsToFit();
     
-    // Add click event listener for edit and delete buttons
+    // Add click event listener for edit and remove buttons
     params.api.addEventListener('cellClicked', (event: any) => {
       if (event.event.target.classList.contains('edit-btn')) {
         this.editRow(event.node);
-      } else if (event.event.target.classList.contains('delete-btn')) {
-        this.deleteRow(event.node);
+      } else if (event.event.target.classList.contains('remove-btn')) {
+        this.removeRow(event.node);
       }
     });
   }
@@ -334,8 +331,8 @@ export class ListingsComponent implements OnInit {
     return `/assets/images/${filename}`;
   }
 
-  deleteRow(node: any): void {
-    if (confirm('Are you sure you want to delete this listing?')) {
+  removeRow(node: any): void {
+    if (confirm('Are you sure you want to remove this listing?')) {
       this.rowData = this.rowData.filter(row => row.id !== node.data.id);
       this.gridApi?.setGridOption('rowData', this.rowData);
       this.saveData();
