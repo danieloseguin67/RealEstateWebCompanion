@@ -7,7 +7,7 @@ This project uses GitHub Actions to automatically deploy to GitHub Pages from th
 The repository is now configured with:
 - **Single branch workflow** (main branch only)
 - **Automatic deployment** via GitHub Actions
-- **Correct base href**: `/RealEstateWebCompanion/`
+- **Base href for custom domain**: `/`
 
 ## 🔧 GitHub Repository Settings Required
 
@@ -45,8 +45,8 @@ To complete the setup, configure GitHub Pages in your repository:
 
 ## 🌐 Live URL
 
-After deployment completes, your site will be available at:
-**https://danieloseguin67.github.io/RealEstateWebCompanion/**
+After deployment completes, your site will be available at your custom domain:
+**https://realestatewebcompanion.seguin.dev/**
 
 ## 🔑 Login Credentials
 
@@ -85,11 +85,11 @@ Key features:
 
 **If the site shows a blank page:**
 - Clear browser cache (Ctrl+F5)
-- Check that GitHub Pages is set to deploy from `gh-pages` branch
+- Check that GitHub Pages is configured to use **GitHub Actions** as the source and that your custom domain is set to `realestatewebcompanion.seguin.dev`.
 
 **If routing doesn't work:**
 - The workflow includes 404.html for SPA routing
-- Make sure the base-href matches your repository name
+- Make sure the base-href is `/` when deploying to the custom domain
 
 **If build fails:**
 - Check the Actions tab for error logs
