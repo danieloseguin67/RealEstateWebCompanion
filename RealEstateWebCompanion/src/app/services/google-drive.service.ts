@@ -114,7 +114,7 @@ export class GoogleDriveService {
     const url = URL.createObjectURL(dataBlob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `apartments_backup.json`;
+    link.download = `apartments_listings.json`;
     link.click();
     URL.revokeObjectURL(url);
   }
