@@ -9,6 +9,7 @@ interface AppVersion {
   author: string;
   company: string;
   copyright: string;
+  'update date'?: string;
 }
 
 interface SupportForm {

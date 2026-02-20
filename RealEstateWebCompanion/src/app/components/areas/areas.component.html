@@ -14,6 +14,41 @@
       </label>
     </div>
   </div>
+
+  @if (isEditing && editingArea) {
+    <div class="edit-form-overlay">
+      <div class="edit-form">
+        <h3>Edit Area</h3>
+        <form>
+          <div class="form-group">
+            <label for="id">ID:</label>
+            <input type="number" id="id" [(ngModel)]="editingArea.id" name="id" class="form-control" readonly>
+          </div>
+          <div class="form-group">
+            <label for="nameFr">Name (FR):</label>
+            <input type="text" id="nameFr" [(ngModel)]="editingArea.nameFr" name="nameFr" class="form-control">
+          </div>
+          <div class="form-group">
+            <label for="nameEn">Name (EN):</label>
+            <input type="text" id="nameEn" [(ngModel)]="editingArea.nameEn" name="nameEn" class="form-control">
+          </div>
+          <div class="form-group">
+            <label for="descriptionEn">Description (EN):</label>
+            <textarea id="descriptionEn" [(ngModel)]="editingArea.descriptionEn" name="descriptionEn" class="form-control" rows="4"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="link">Link:</label>
+            <input type="text" id="link" [(ngModel)]="editingArea.link" name="link" class="form-control">
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn btn-primary" (click)="saveEdit()">Save</button>
+            <button type="button" class="btn btn-secondary" (click)="cancelEdit()">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
   <ag-grid-angular
     style="width: 100%; height: 500px;"
     class="ag-theme-alpine"

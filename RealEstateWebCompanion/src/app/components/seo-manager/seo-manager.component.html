@@ -1,0 +1,219 @@
+<div class="seo-manager">
+  <div class="header">
+    <h2>SEO Manager</h2>
+    <div class="actions">
+      <button class="btn btn-help" (click)="toggleHelp()" title="Help & Getting Started">
+        Help
+      </button>
+      <button class="btn btn-success" (click)="addRow()">
+        + Add Page
+      </button>
+      <button class="btn btn-info" (click)="manualImportUrls()" title="Recommended: Paste your site's URLs">
+        📝 Manual Import (Recommended)
+      </button>
+      <button class="btn btn-outline-info" (click)="preloadPages()" title="Try auto-discovery (may be blocked by CORS)">
+        🔍 Auto Discover
+      </button>
+      @if (websiteUrl) {
+        <button class="btn btn-outline" (click)="changeWebsiteUrl()" title="Change website URL">
+          🌐 Change URL
+        </button>
+      }
+      @if (rowData.length > 0) {
+        <button class="btn btn-danger" (click)="clearAllRecords()" title="Clear all SEO records">
+          🗑️ Clear All
+        </button>
+      }
+      <button class="btn btn-warning" (click)="generateSitemap()">
+        Generate Sitemap XML
+      </button>
+      <button class="btn btn-primary" (click)="exportData()">
+        Export SEO Data (JSON)
+      </button>
+      <label class="btn btn-secondary">
+        Import SEO Data (JSON)
+        <input type="file" accept=".json" (change)="importData($event)" style="display: none;">
+      </label>
+    </div>
+  </div>
+  
+  <div class="info-panel">
+    <h3>SEO Management</h3>
+    <p>Manage your website's pages with SEO metadata including titles, meta descriptions, and sitemap configuration.</p>
+    @if (websiteUrl) {
+      <p class="website-url"><strong>Configured Website:</strong> <span class="url-display">{{ websiteUrl }}</span></p>
+    } @else {
+      <p class="no-url"><strong>Quick Start:</strong> Click "Manual Import" to set your website URL and add your pages.</p>
+    }
+    <p><strong>Recommended Workflow:</strong></p>
+    <ul style="margin-top: 5px; color: #6c757d;">
+      <li><strong>Manual Import (Recommended):</strong> Paste your site's navigation URLs - works reliably every time</li>
+      <li><strong>Auto Discover:</strong> Attempts to fetch sitemap.xml or homepage - often blocked by browser CORS policy</li>
+      <li><strong>Clear All:</strong> Remove all existing records to start fresh with correct pages</li>
+    </ul>
+    <ul>
+      <li><strong>Page Name:</strong> Internal identifier for the page</li>
+      <li><strong>Page URL:</strong> The URL path for the page (e.g., /about, /contact)</li>
+      <li><strong>Page Title:</strong> The title that appears in browser tabs and search results</li>
+      <li><strong>Meta Name:</strong> The name attribute for meta tags</li>
+      <li><strong>Meta Description:</strong> Description shown in search engine results</li>
+      <li><strong>Change Frequency:</strong> How often the page is updated (for sitemap.xml)</li>
+      <li><strong>Priority:</strong> Page priority from 0.0 to 1.0 (for sitemap.xml)</li>
+    </ul>
+  </div>
+
+  @if (showHelp) {
+    <div class="help-overlay" (click)="closeHelp()">
+      <div class="help-dialog" (click)="$event.stopPropagation()">
+        <div class="help-header">
+          <h3>🚀 SEO Manager - Getting Started Guide</h3>
+          <button class="close-btn" (click)="closeHelp()">✕</button>
+        </div>
+        <div class="help-content">
+          <section>
+            <h4>📍 Step 1: Choose Your Method to Load Pages</h4>
+            <div class="help-method">
+              <h5>✅ Manual Import (Recommended)</h5>
+              <p><strong>Why use this:</strong> This method works 100% of the time and gives you full control over which pages are added.</p>
+              <p><strong>How to use:</strong></p>
+              <ol>
+                <li>Click the <strong>"📝 Manual Import"</strong> button</li>
+                <li>Enter your website URL (e.g., https://montreal4rent.com)</li>
+                <li>Paste your page URLs, one per line. For example:
+                  <pre>/
+/apartments
+/contact-us
+/about</pre>
+                </li>
+                <li>Click OK - pages will be created with recommended SEO values</li>
+              </ol>
+            </div>
+            
+            <div class="help-method">
+              <h5>🔍 Auto Discover (May Be Blocked)</h5>
+              <p><strong>Why use this:</strong> Attempts to automatically find pages from your sitemap.xml or homepage.</p>
+              <p><strong>Limitation:</strong> Most browsers block this due to CORS (Cross-Origin Resource Sharing) security policy.</p>
+              <p><strong>How to use:</strong></p>
+              <ol>
+                <li>Click the <strong>"🔍 Auto Discover"</strong> button</li>
+                <li>Enter your website URL</li>
+                <li>The system will try to fetch your sitemap.xml or parse your homepage</li>
+                <li><strong>If it fails:</strong> A dialog will suggest using Manual Import instead - click OK to proceed</li>
+              </ol>
+            </div>
+          </section>
+
+          <section>
+            <h4>📄 Understanding Sitemap XML</h4>
+            <p><strong>What it is:</strong> A sitemap.xml file tells search engines (Google, Bing) about all the pages on your website.</p>
+            <p><strong>How to use it:</strong></p>
+            <ol>
+              <li>Add all your pages using Manual Import or Add Page</li>
+              <li>Fill in the SEO metadata (titles, descriptions, etc.)</li>
+              <li>Click <strong>"Generate Sitemap XML"</strong></li>
+              <li>A sitemap.xml file will download to your computer</li>
+              <li><strong>Upload this file</strong> to your website's root directory (e.g., https://yoursite.com/sitemap.xml)</li>
+              <li>Submit the sitemap URL to <a href="https://search.google.com/search-console" target="_blank">Google Search Console</a> and <a href="https://www.bing.com/webmasters" target="_blank">Bing Webmaster Tools</a></li>
+            </ol>
+            <p><strong>Benefits:</strong> Helps search engines discover and index your pages faster, improving your SEO.</p>
+          </section>
+
+          <section>
+            <h4>💾 Export SEO Data</h4>
+            <p><strong>Purpose:</strong> Save all your SEO data to a JSON file as a backup or to share with team members.</p>
+            <p><strong>When to use:</strong></p>
+            <ul>
+              <li>Before making major changes (create a backup)</li>
+              <li>To transfer SEO data between environments (dev, staging, production)</li>
+              <li>To share your SEO configuration with other team members</li>
+              <li>As a regular backup of your SEO metadata</li>
+            </ul>
+            <p><strong>How to use:</strong> Click <strong>"Export SEO Data (JSON)"</strong> and a file will download with all your pages and metadata.</p>
+          </section>
+
+          <section>
+            <h4>📥 Import SEO Data</h4>
+            <p><strong>Purpose:</strong> Load previously saved SEO data from a JSON file.</p>
+            <p><strong>When to use:</strong></p>
+            <ul>
+              <li>Restore from a backup</li>
+              <li>Load SEO data created in another environment</li>
+              <li>Import SEO configuration from a team member</li>
+              <li>Recover from accidental deletion (if you have a backup)</li>
+            </ul>
+            <p><strong>How to use:</strong> Click <strong>"Import SEO Data (JSON)"</strong>, select your JSON file, and all pages will be loaded.</p>
+            <p><strong>⚠️ Warning:</strong> Importing will replace your current data. Export first if you want to keep your current data!</p>
+          </section>
+
+          <section>
+            <h4>🎯 Quick Start Workflow</h4>
+            <ol>
+              <li>Click <strong>Manual Import</strong> to add your pages</li>
+              <li>Use the <strong>Edit</strong> button to refine SEO metadata for each page</li>
+              <li>Click <strong>Export SEO Data</strong> to create a backup</li>
+              <li>Click <strong>Generate Sitemap XML</strong> to create your sitemap</li>
+              <li>Upload sitemap.xml to your website and submit to search engines</li>
+            </ol>
+          </section>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (isEditing && editingPage) {
+    <div class="edit-form-overlay">
+      <div class="edit-form">
+        <h3>Edit SEO Page</h3>
+        <form>
+          <div class="form-group">
+            <label for="pageName">Page Name:</label>
+            <input type="text" id="pageName" [(ngModel)]="editingPage.pageName" name="pageName" class="form-control">
+          </div>
+          <div class="form-group">
+            <label for="pageUrl">Page URL:</label>
+            <input type="text" id="pageUrl" [(ngModel)]="editingPage.pageUrl" name="pageUrl" class="form-control">
+          </div>
+          <div class="form-group">
+            <label for="title">Page Title:</label>
+            <input type="text" id="title" [(ngModel)]="editingPage.title" name="title" class="form-control">
+          </div>
+          <div class="form-group">
+            <label for="metaName">Meta Name:</label>
+            <input type="text" id="metaName" [(ngModel)]="editingPage.metaName" name="metaName" class="form-control">
+          </div>
+          <div class="form-group">
+            <label for="metaDescription">Meta Description:</label>
+            <textarea id="metaDescription" [(ngModel)]="editingPage.metaDescription" name="metaDescription" class="form-control" rows="4"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="changeFrequency">Change Frequency:</label>
+            <select id="changeFrequency" [(ngModel)]="editingPage.changeFrequency" name="changeFrequency" class="form-control">
+              @for (freq of changeFrequencyOptions; track freq) {
+                <option [value]="freq">{{ freq }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="priority">Priority (0.0 - 1.0):</label>
+            <input type="number" id="priority" [(ngModel)]="editingPage.priority" name="priority" class="form-control" min="0" max="1" step="0.1">
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn btn-primary" (click)="saveEdit()">Save</button>
+            <button type="button" class="btn btn-secondary" (click)="cancelEdit()">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+  
+  <ag-grid-angular
+    style="width: 100%; height: 500px;"
+    class="ag-theme-alpine"
+    [rowData]="rowData"
+    [columnDefs]="colDefs"
+    [defaultColDef]="defaultColDef"
+    [gridOptions]="gridOptions"
+    (gridReady)="onGridReady($event)"
+    (cellValueChanged)="onCellValueChanged($event)"
+  />
+</div>

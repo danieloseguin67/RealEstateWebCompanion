@@ -35,3 +35,15 @@ export interface Toggle {
   toggle_name: string;
   toggle_image: string;
 }
+
+export interface SeoPage {
+  id: string;
+  pageName: string;
+  pageUrl: string;
+  title: string;
+  metaName: string;
+  metaDescription: string;
+  lastModified?: string;
+  changeFrequency?: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never';
+  priority?: number;
+}

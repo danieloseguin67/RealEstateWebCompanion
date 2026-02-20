@@ -4,23 +4,28 @@ import { ColDef, GridOptions } from 'ag-grid-community';
 import { DataService } from '../../services/data.service';
 import { GoogleDriveService } from '../../services/google-drive.service';
 import { Area } from '../../models/data.models';
+import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-areas',
-  imports: [AgGridAngular],
+  imports: [AgGridAngular, FormsModule, CommonModule],
   templateUrl: './areas.component.html',
   styleUrl: './areas.component.scss'
 })
 export class AreasComponent implements OnInit {
   rowData: Area[] = [];
   private gridApi: any;
+  isEditing: boolean = false;
+  editingArea: Area | null = null;
+  originalArea: Area | null = null;
   
   colDefs: ColDef[] = [
     { 
       headerName: 'Actions', 
-      width: 100, 
+      width: 180, 
       cellRenderer: (params: any) => {
-        return '<button class="delete-btn">Delete</button>';
+        return '<button class="edit-btn">Edit</button> <button class="delete-btn">Delete</button>';
       },
       editable: false,
       filter: false,
@@ -65,6 +70,8 @@ export class AreasComponent implements OnInit {
     params.api.addEventListener('cellClicked', (event: any) => {
       if (event.event.target.classList.contains('delete-btn')) {
         this.deleteRow(event.node);
+      } else if (event.event.target.classList.contains('edit-btn')) {
+        this.editRow(event.node);
       }
     });
   }
@@ -85,6 +92,30 @@ export class AreasComponent implements OnInit {
     this.rowData = [newRow, ...this.rowData];
     this.gridApi?.setGridOption('rowData', this.rowData);
     this.saveData();
+  }
+
+  editRow(node: any): void {
+    this.editingArea = { ...node.data };
+    this.originalArea = { ...node.data };
+    this.isEditing = true;
+  }
+
+  saveEdit(): void {
+    if (this.editingArea) {
+      const index = this.rowData.findIndex(row => row.id === this.editingArea!.id);
+      if (index !== -1) {
+        this.rowData[index] = { ...this.editingArea };
+        this.gridApi?.setGridOption('rowData', this.rowData);
+        this.saveData();
+      }
+      this.cancelEdit();
+    }
+  }
+
+  cancelEdit(): void {
+    this.isEditing = false;
+    this.editingArea = null;
+    this.originalArea = null;
   }
 
   deleteRow(node: any): void {

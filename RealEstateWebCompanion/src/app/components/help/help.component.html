@@ -30,6 +30,12 @@
               <strong>Version:</strong>
               <span>{{ appVersion.version }}</span>
             </div>
+            @if (appVersion['update date']) {
+              <div class="info-item">
+                <strong>Last Updated:</strong>
+                <span>{{ appVersion['update date'] }}</span>
+              </div>
+            }
             <div class="info-item">
               <strong>Author:</strong>
               <span>{{ appVersion.author }}</span>

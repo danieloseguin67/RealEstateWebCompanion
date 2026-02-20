@@ -6,6 +6,7 @@ import { UnitTypesComponent } from './components/unit-types/unit-types.component
 import { TogglesComponent } from './components/toggles/toggles.component';
 import { LoginComponent } from './components/login/login.component';
 import { HelpComponent } from './components/help/help.component';
+import { SeoManagerComponent } from './components/seo-manager/seo-manager.component';
 import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
@@ -16,5 +17,6 @@ export const routes: Routes = [
   { path: 'areas', component: AreasComponent, canActivate: [authGuard] },
   { path: 'unit-types', component: UnitTypesComponent, canActivate: [authGuard] },
   { path: 'toggles', component: TogglesComponent, canActivate: [authGuard] },
+  { path: 'seo-manager', component: SeoManagerComponent, canActivate: [authGuard] },
   { path: 'help', component: HelpComponent, canActivate: [authGuard] }
 ];

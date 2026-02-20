@@ -1,0 +1,35 @@
+[
+  {
+    "id": "home",
+    "pageName": "Home",
+    "pageUrl": "/",
+    "title": "Real Estate Web Companion - Home",
+    "metaName": "description",
+    "metaDescription": "Find your perfect rental property with our comprehensive real estate listings.",
+    "lastModified": "2026-02-19",
+    "changeFrequency": "daily",
+    "priority": 1.0
+  },
+  {
+    "id": "listings",
+    "pageName": "Listings",
+    "pageUrl": "/listings",
+    "title": "Property Listings - Real Estate Web Companion",
+    "metaName": "description",
+    "metaDescription": "Browse our extensive collection of rental properties including apartments, condos, and more.",
+    "lastModified": "2026-02-19",
+    "changeFrequency": "daily",
+    "priority": 0.9
+  },
+  {
+    "id": "areas",
+    "pageName": "Areas",
+    "pageUrl": "/areas",
+    "title": "Explore Areas - Real Estate Web Companion",
+    "metaName": "description",
+    "metaDescription": "Discover different neighborhoods and areas to find your ideal location.",
+    "lastModified": "2026-02-19",
+    "changeFrequency": "weekly",
+    "priority": 0.7
+  }
+]
