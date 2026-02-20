@@ -107,14 +107,36 @@ export class GoogleDriveService {
   }
 
   exportData(data: any): void {
-    // Export only apartments array (without wrapper object)
-    const exportData = data.apartments || data;
+    // Determine the data type and filename
+    let exportData: any;
+    let filename: string;
+
+    if (data.seoPages) {
+      exportData = data.seoPages;
+      filename = 'seomanager.json';
+    } else if (data.areas) {
+      exportData = data.areas;
+      filename = 'areasmanager.json';
+    } else if (data.unitTypes) {
+      exportData = data.unitTypes;
+      filename = 'unittypes.json';
+    } else if (data.toggles) {
+      exportData = data.toggles;
+      filename = 'features.json';
+    } else if (data.apartments) {
+      exportData = data.apartments;
+      filename = 'apartments_listings.json';
+    } else {
+      exportData = data;
+      filename = 'export.json';
+    }
+
     const dataStr = JSON.stringify(exportData, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
     const url = URL.createObjectURL(dataBlob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `apartments_listings.json`;
+    link.download = filename;
     link.click();
     URL.revokeObjectURL(url);
   }
