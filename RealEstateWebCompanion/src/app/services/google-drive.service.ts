@@ -156,4 +156,135 @@ export class GoogleDriveService {
       reader.readAsText(file);
     });
   }
+
+  extractFolderIdFromUrl(url: string): string | null {
+    try {
+      const match = url.match(/[?&]id=([^&]+)/);
+      return match ? match[1] : null;
+    } catch {
+      return null;
+    }
+  }
+
+  async exportToGoogleDrive(data: any, folderId: string): Promise<void> {
+    try {
+      // Determine the data type and filename
+      let exportData: any;
+      let filename: string;
+
+      if (data.seoPages) {
+        exportData = data.seoPages;
+        filename = 'seomanager.json';
+      } else if (data.areas) {
+        exportData = data.areas;
+        filename = 'areasmanager.json';
+      } else if (data.unitTypes) {
+        exportData = data.unitTypes;
+        filename = 'unittypes.json';
+      } else if (data.toggles) {
+        exportData = data.toggles;
+        filename = 'features.json';
+      } else if (data.apartments) {
+        exportData = data.apartments;
+        filename = 'apartments_listings.json';
+      } else {
+        exportData = data;
+        filename = 'export.json';
+      }
+
+      const dataStr = JSON.stringify(exportData, null, 2);
+      
+      if (!this.isInitialized) {
+        await this.initClient();
+      }
+      
+      if (!this.isSignedIn) {
+        await this.signIn();
+      }
+
+      // Check if file already exists in folder
+      const existingFiles = await gapi.client.drive.files.list({
+        q: `name='${filename}' and '${folderId}' in parents and trashed=false`,
+        fields: 'files(id, name)'
+      });
+
+      let fileId = null;
+      if (existingFiles.result.files && existingFiles.result.files.length > 0) {
+        fileId = existingFiles.result.files[0].id;
+      }
+
+      if (fileId) {
+        // Update existing file
+        await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
+          method: 'PATCH',
+          headers: new Headers({ 
+            'Authorization': 'Bearer ' + gapi.auth.getToken().access_token,
+            'Content-Type': 'application/json'
+          }),
+          body: dataStr
+        });
+        alert(`Successfully updated ${filename} in Google Drive folder`);
+      } else {
+        // Create new file
+        const file = new Blob([dataStr], { type: 'application/json' });
+        const metadata = {
+          name: filename,
+          mimeType: 'application/json',
+          parents: [folderId]
+        };
+
+        const form = new FormData();
+        form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+        form.append('file', file);
+
+        await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+          method: 'POST',
+          headers: new Headers({ 'Authorization': 'Bearer ' + gapi.auth.getToken().access_token }),
+          body: form
+        });
+        alert(`Successfully exported ${filename} to Google Drive folder`);
+      }
+    } catch (error: any) {
+      console.error('Google Drive export error:', error);
+      alert('Failed to export to Google Drive: ' + (error.message || 'Unknown error') + '.\n\nFalling back to local download.');
+      // Fallback to local export
+      this.exportData(data);
+    }
+  }
+
+  async importFromGoogleDrive(filename: string, folderId: string): Promise<any> {
+    try {
+      if (!this.isInitialized) {
+        await this.initClient();
+      }
+      
+      if (!this.isSignedIn) {
+        await this.signIn();
+      }
+
+      // Search for the file in the folder
+      const response = await gapi.client.drive.files.list({
+        q: `name='${filename}' and '${folderId}' in parents and trashed=false`,
+        fields: 'files(id, name)',
+        orderBy: 'modifiedTime desc'
+      });
+
+      if (!response.result.files || response.result.files.length === 0) {
+        throw new Error(`File ${filename} not found in Google Drive folder`);
+      }
+
+      const fileId = response.result.files[0].id;
+
+      // Download the file content
+      const fileResponse = await gapi.client.drive.files.get({
+        fileId: fileId,
+        alt: 'media'
+      });
+
+      return fileResponse.result;
+    } catch (error: any) {
+      console.error('Google Drive import error:', error);
+      throw error;
+    }
+  }
 }

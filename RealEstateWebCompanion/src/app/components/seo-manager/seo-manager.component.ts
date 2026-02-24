@@ -6,6 +6,8 @@ import { GoogleDriveService } from '../../services/google-drive.service';
 import { SeoPage } from '../../models/data.models';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-seo-manager',
@@ -23,6 +25,8 @@ export class SeoManagerComponent implements OnInit {
   originalPage: SeoPage | null = null;
   changeFrequencyOptions = ['always', 'hourly', 'daily', 'weekly', 'monthly', 'yearly', 'never'];
   showHelp: boolean = false;
+  googleDriveFolderId: string | null = null;
+  googleDriveFolderUrl: string | null = null;
   
   colDefs: ColDef[] = [
     { 
@@ -79,14 +83,26 @@ export class SeoManagerComponent implements OnInit {
 
   constructor(
     private seoService: SeoService,
-    private googleDriveService: GoogleDriveService
+    private googleDriveService: GoogleDriveService,
+    private http: HttpClient
   ) {}
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     this.seoService.seoPages$.subscribe(data => {
       this.rowData = data;
     });
     this.websiteUrl = this.seoService.getWebsiteUrl();
+    
+    // Load Google Drive folder ID from preferences
+    try {
+      const preferences = await firstValueFrom(this.http.get<any>('assets/data/preferences.json'));
+      if (preferences?.googledrive) {
+        this.googleDriveFolderUrl = preferences.googledrive;
+        this.googleDriveFolderId = this.googleDriveService.extractFolderIdFromUrl(preferences.googledrive);
+      }
+    } catch (error) {
+      console.error('Failed to load preferences:', error);
+    }
   }
 
   onGridReady(params: any): void {
@@ -173,8 +189,14 @@ export class SeoManagerComponent implements OnInit {
     this.seoService.updateSeoPages(this.rowData);
   }
 
-  exportData(): void {
-    this.googleDriveService.exportData({ seoPages: this.rowData });
+  async exportData(): Promise<void> {
+    if (this.googleDriveFolderId) {
+      // Export to Google Drive
+      await this.googleDriveService.exportToGoogleDrive({ seoPages: this.rowData }, this.googleDriveFolderId);
+    } else {
+      // Fallback to local export
+      this.googleDriveService.exportData({ seoPages: this.rowData });
+    }
   }
 
   clearAllRecords(): void {
@@ -195,6 +217,20 @@ export class SeoManagerComponent implements OnInit {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       const file = input.files[0];
+      
+      let message = `Import SEO data from local file: "${file.name}"?\n\n`;
+      if (this.googleDriveFolderUrl) {
+        message += `Note: You have a Google Drive folder configured. This import is from your local computer, not Google Drive.\n\n`;
+        message += `Google Drive Folder: ${this.googleDriveFolderUrl}\n\n`;
+      }
+      message += `⚠️ Warning: This will replace all current SEO data.`;
+      
+      if (!confirm(message)) {
+        // Reset the file input
+        input.value = '';
+        return;
+      }
+      
       const text = await file.text();
       try {
         const data = JSON.parse(text);
@@ -202,10 +238,42 @@ export class SeoManagerComponent implements OnInit {
           this.rowData = data.seoPages;
           this.gridApi?.setGridOption('rowData', this.rowData);
           this.saveData();
+          alert(`Successfully imported ${data.seoPages.length} SEO page(s) from local file.`);
+        } else {
+          alert('Invalid JSON file: Missing seoPages property');
         }
       } catch (error) {
-        alert('Invalid JSON file');
+        alert('Invalid JSON file: Unable to parse');
       }
+      // Reset the file input
+      input.value = '';
+    }
+  }
+
+  async importFromGoogleDrive(): Promise<void> {
+    if (!this.googleDriveFolderId) {
+      alert('Google Drive folder not configured in preferences.json');
+      return;
+    }
+
+    const message = `Import SEO data from Google Drive?\n\nFolder: ${this.googleDriveFolderUrl || 'Configured in preferences.json'}\nFile: seomanager.json\n\n⚠️ Warning: This will replace all current SEO data.\n\nClick OK to proceed with import.`;
+    
+    if (!confirm(message)) {
+      return;
+    }
+
+    try {
+      const data = await this.googleDriveService.importFromGoogleDrive('seomanager.json', this.googleDriveFolderId);
+      if (data && Array.isArray(data)) {
+        this.rowData = data;
+        this.gridApi?.setGridOption('rowData', this.rowData);
+        this.saveData();
+        alert(`Successfully imported ${data.length} SEO page(s) from Google Drive folder.`);
+      } else {
+        alert('Invalid data format in Google Drive file');
+      }
+    } catch (error: any) {
+      alert('Failed to import from Google Drive: ' + (error.message || 'Unknown error'));
     }
   }
 

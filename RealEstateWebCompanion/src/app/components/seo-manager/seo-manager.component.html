@@ -30,6 +30,11 @@
       <button class="btn btn-primary" (click)="exportData()">
         Export SEO Data (JSON)
       </button>
+      @if (googleDriveFolderId) {
+        <button class="btn btn-info" (click)="importFromGoogleDrive()" title="Import from SeguinDev Google Drive folder">
+          📥 Import from SeguinDev Google Drive
+        </button>
+      }
       <label class="btn btn-secondary">
         Import SEO Data (JSON)
         <input type="file" accept=".json" (change)="importData($event)" style="display: none;">
@@ -128,7 +133,8 @@
               <li>To share your SEO configuration with other team members</li>
               <li>As a regular backup of your SEO metadata</li>
             </ul>
-            <p><strong>How to use:</strong> Click <strong>"Export SEO Data (JSON)"</strong> and a file will download with all your pages and metadata.</p>
+            <p><strong>How to use:</strong> Click <strong>"Export SEO Data (JSON)"</strong>.</p>
+            <p><strong>💡 Note:</strong> If you have configured a Google Drive folder in preferences.json, exports will automatically save to your Google Drive folder. Otherwise, files will download to your computer.</p>
           </section>
 
           <section>
@@ -141,7 +147,11 @@
               <li>Import SEO configuration from a team member</li>
               <li>Recover from accidental deletion (if you have a backup)</li>
             </ul>
-            <p><strong>How to use:</strong> Click <strong>"Import SEO Data (JSON)"</strong>, select your JSON file, and all pages will be loaded.</p>
+            <p><strong>How to use:</strong></p>
+            <ul>
+              <li><strong>From Google Drive:</strong> If configured, click <strong>"📥 Import from Google Drive"</strong> to load the latest version from your Drive folder</li>
+              <li><strong>From Local File:</strong> Click <strong>"Import SEO Data (JSON)"</strong> and select your JSON file</li>
+            </ul>
             <p><strong>⚠️ Warning:</strong> Importing will replace your current data. Export first if you want to keep your current data!</p>
           </section>
 
