@@ -144,7 +144,7 @@ export class ListingsComponent implements OnInit {
   
   gridOptions: GridOptions = {
     pagination: true,
-    paginationPageSize: 15
+    paginationPageSize: 50
   };
 
   constructor(
