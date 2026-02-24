@@ -27,18 +27,33 @@
       <button class="btn btn-warning" (click)="generateSitemap()">
         Generate Sitemap XML
       </button>
-      <button class="btn btn-primary" (click)="exportData()">
-        Export SEO Data (JSON)
-      </button>
-      @if (googleDriveFolderId) {
-        <button class="btn btn-info" (click)="importFromGoogleDrive()" title="Import from SeguinDev Google Drive folder">
-          📥 Import from SeguinDev Google Drive
+      @if (googleDriveFolderUrl) {
+        <div class="button-group">
+          <button class="btn btn-primary" (click)="exportData()" title="Export SEO data to local file">
+            📤 Export from SEO Manager
+          </button>
+          <button class="btn btn-success" (click)="openGoogleDriveToUpload()" title="Open Google Drive to upload exported file">
+            ⬆️ Put into SeguinDev Drive
+          </button>
+        </div>
+        <div class="button-group">
+          <button class="btn btn-primary" (click)="quickImportFromSeguinDev()" title="Download SEO file from SeguinDev Google Drive">
+            📥 Get from SeguinDev Drive
+          </button>
+          <label class="btn btn-secondary" title="Import SEO data from local file">
+            📋 Import to SEO Manager
+            <input type="file" accept=".json" (change)="importData($event)" style="display: none;">
+          </label>
+        </div>
+      } @else {
+        <button class="btn btn-primary" (click)="exportData()">
+          Export SEO Data (JSON)
         </button>
+        <label class="btn btn-secondary">
+          Import SEO Data (JSON)
+          <input type="file" accept=".json" (change)="importData($event)" style="display: none;">
+        </label>
       }
-      <label class="btn btn-secondary">
-        Import SEO Data (JSON)
-        <input type="file" accept=".json" (change)="importData($event)" style="display: none;">
-      </label>
     </div>
   </div>
   
@@ -66,6 +81,114 @@
       <li><strong>Priority:</strong> Page priority from 0.0 to 1.0 (for sitemap.xml)</li>
     </ul>
   </div>
+
+  @if (showExportInstructions) {
+    <div class="help-overlay" (click)="closeExportInstructions()">
+      <div class="help-dialog" (click)="$event.stopPropagation()">
+        <div class="help-header">
+          <h3>📤 How to Export SEO Data to SeguinDev</h3>
+          <button class="close-btn" (click)="closeExportInstructions()">✕</button>
+        </div>
+        <div class="help-content">
+          <section>
+            <h4>🚀 Quick 3-Step Process</h4>
+            
+            <div class="help-method">
+              <h5>🔹 Step 1: Export SEO Data</h5>
+              <p>Click the <strong>"Export SEO Data (JSON)"</strong> button above</p>
+              <ul>
+                <li>This will download a file named <strong>"seo-data.json"</strong> to your computer</li>
+                <li>The file will be saved in your Downloads folder</li>
+                <li>This file contains all your current SEO pages and metadata</li>
+              </ul>
+            </div>
+
+            <div class="help-method">
+              <h5>🔹 Step 2: Open Google Drive Folder</h5>
+              <p>Click the <strong>"📂 Open Seguin Google Drive Folder"</strong> button</p>
+              <ul>
+                <li>This will open the shared Google Drive folder in a new browser tab</li>
+                <li>Make sure you're signed in with your Google account that has access</li>
+              </ul>
+            </div>
+
+            <div class="help-method">
+              <h5>🔹 Step 3: Upload to Google Drive</h5>
+              <p>In the Google Drive folder:</p>
+              <ul>
+                <li>Look for the existing <strong>"seomanager.json"</strong> file (if any)</li>
+                <li>Right-click in the folder and select <strong>"File upload"</strong> or drag & drop</li>
+                <li>Select the <strong>"seo-data.json"</strong> file from your Downloads folder</li>
+                <li>Optional: Rename it to <strong>"seomanager.json"</strong> to replace the old version</li>
+                <li>The file is now available to share with others!</li>
+              </ul>
+            </div>
+
+            <div class="help-note">
+              <p><strong>✅ That's it!</strong> Your SEO data is now backed up to Google Drive and can be shared with your team.</p>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (showImportInstructions) {
+    <div class="help-overlay" (click)="closeImportInstructions()">
+      <div class="help-dialog" (click)="$event.stopPropagation()">
+        <div class="help-header">
+          <h3>📥 How to Import SEO Data from SeguinDev</h3>
+          <button class="close-btn" (click)="closeImportInstructions()">✕</button>
+        </div>
+        <div class="help-content">
+          <section>
+            <h4>🚀 Quick 3-Step Process</h4>
+            
+            <div class="help-method">
+              <h5>🔹 Step 1: Open Google Drive Folder</h5>
+              <p>Click the <strong>"📂 Open Seguin Google Drive Folder"</strong> button below</p>
+              <ul>
+                <li>This will open the shared Google Drive folder in a new browser tab</li>
+                <li>Make sure you're signed in with your Google account that has access to the shared folder</li>
+              </ul>
+            </div>
+
+            <div class="help-method">
+              <h5>🔹 Step 2: Download the SEO File</h5>
+              <p>In the Google Drive folder:</p>
+              <ul>
+                <li>Look for the file named <strong>"seomanager.json"</strong></li>
+                <li>Right-click the file and select <strong>"Download"</strong></li>
+                <li>The file will be saved to your computer's Downloads folder</li>
+              </ul>
+            </div>
+
+            <div class="help-method">
+              <h5>🔹 Step 3: Import into SEO Manager</h5>
+              <p>Back on this page:</p>
+              <ul>
+                <li>Click the <strong>"Import SEO Data (JSON)"</strong> button</li>
+                <li>A file picker window will open - navigate to your Downloads folder:
+                  <ul>
+                    <li><strong>Quick way:</strong> Click "Downloads" in the left sidebar</li>
+                    <li><strong>Or:</strong> Type "Downloads" in the location/address bar</li>
+                    <li><strong>Or:</strong> Navigate to <code>C:\Users\[YourName]\Downloads</code></li>
+                  </ul>
+                </li>
+                <li>Find and select the <strong>"seomanager.json"</strong> file (may show as "seomanager (1).json" if downloaded multiple times)</li>
+                <li>Click <strong>"Open"</strong> - the SEO data will be imported automatically!</li>
+              </ul>
+              <p><strong>💡 Tip:</strong> If you downloaded the file multiple times, use the most recent version (highest number in parentheses).</p>
+            </div>
+
+            <div class="help-note">
+              <p><strong>✅ That's it!</strong> Your SEO data is now loaded and ready to use.</p>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  }
 
   @if (showHelp) {
     <div class="help-overlay" (click)="closeHelp()">

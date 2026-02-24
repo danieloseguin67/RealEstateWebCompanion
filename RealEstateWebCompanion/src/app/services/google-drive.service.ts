@@ -10,6 +10,7 @@ export class GoogleDriveService {
   private isSignedIn = false;
 
   // Replace with your actual Google API credentials
+  // To enable Google Drive features, obtain credentials from: https://console.cloud.google.com/
   private CLIENT_ID = 'YOUR_CLIENT_ID.apps.googleusercontent.com';
   private API_KEY = 'YOUR_API_KEY';
   private DISCOVERY_DOCS = ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'];

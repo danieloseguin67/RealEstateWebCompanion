@@ -5,16 +5,38 @@
       <button class="btn btn-success" (click)="addRow()">
         + Add Listing
       </button>
-      <button class="btn btn-primary" (click)="exportData()">
-        Export Apartments (JSON)
-      </button>
-      <button class="btn btn-warning" (click)="resetToDefault()">
-        Reset to Default
-      </button>
-      <label class="btn btn-secondary">
-        Import Apartments (JSON)
-        <input type="file" accept=".json" (change)="importData($event)" style="display: none;">
-      </label>
+      @if (googleDriveFolderUrl) {
+        <div class="button-group">
+          <button class="btn btn-primary" (click)="exportData()" title="Export Apartments data to local file">
+            📤 Export from Listings Manager
+          </button>
+          <button class="btn btn-success" (click)="openGoogleDriveToUpload()" title="Open Google Drive to upload exported file">
+            ⬆️ Put into SeguinDev Drive
+          </button>
+        </div>
+        <div class="button-group">
+          <button class="btn btn-primary" (click)="quickImportFromSeguinDev()" title="Download Apartments file from SeguinDev Google Drive">
+            📥 Get from SeguinDev Drive
+          </button>
+          <label class="btn btn-secondary" title="Import Apartments data from local file">
+            📋 Import to Listings Manager
+            <input type="file" accept=".json" (change)="importData($event)" style="display: none;">
+          </label>
+        </div>
+      } @else {
+        <button class="btn btn-primary" (click)="exportData()">
+          Export Apartments (JSON)
+        </button>
+        <label class="btn btn-secondary">
+          Import Apartments (JSON)
+          <input type="file" accept=".json" (change)="importData($event)" style="display: none;">
+        </label>
+      }
+      @if (isDanielSeguin) {
+        <button class="btn btn-warning" (click)="resetToDefault()">
+          Load Demo Listings from California, USA - Add 100 Listings
+        </button>
+      }
     </div>
   </div>
   <ag-grid-angular
@@ -166,47 +188,47 @@
         
         <!-- Features Tab -->
         <div class="tab-content" *ngIf="activeTab === 'features'">
-          <div class="features-section">
-            <h4>Features (French)</h4>
-            <div class="feature-input-group">
-              <input 
-                type="text" 
-                [(ngModel)]="newFeatureFr" 
-                placeholder="Enter feature in French"
-                (keyup.enter)="addFeature('fr')">
-              <button class="btn btn-success" (click)="addFeature('fr')">Add</button>
-            </div>
-            <div class="features-list">
-              <div *ngFor="let feature of editingApartment.features; let i = index" class="feature-item">
-                <input 
-                  type="text" 
-                  [(ngModel)]="editingApartment.features[i]" 
-                  class="feature-edit-input">
-                <button class="btn btn-secondary" (click)="editFeature(i, 'fr')">Edit</button>
-                <button class="btn btn-danger" (click)="removeFeature(i, 'fr')">Remove</button>
+          <div class="features-drive-manager">
+            <h3>Features Data Management</h3>
+            <p>Manage your listings features data with Google Drive integration.</p>
+            
+            @if (googleDriveFolderUrl) {
+              <div class="drive-actions">
+                <div class="button-group">
+                  <button class="btn btn-primary" (click)="exportFeaturesData()" title="Export Features data to local file">
+                    📤 Export from Features Manager
+                  </button>
+                  <button class="btn btn-success" (click)="openGoogleDriveToUpload()" title="Open Google Drive to upload exported file">
+                    ⬆️ Put into SeguinDev Drive
+                  </button>
+                </div>
+                <div class="button-group">
+                  <button class="btn btn-primary" (click)="quickImportFromSeguinDev()" title="Download Features file from SeguinDev Google Drive">
+                    📥 Get from SeguinDev Drive
+                  </button>
+                  <label class="btn btn-secondary" title="Import Features data from local file">
+                    📋 Import to Features Manager
+                    <input type="file" accept=".json" (change)="importFeaturesData($event)" style="display: none;">
+                  </label>
+                </div>
               </div>
-            </div>
-          </div>
-          
-          <div class="features-section">
-            <h4>Features (English)</h4>
-            <div class="feature-input-group">
-              <input 
-                type="text" 
-                [(ngModel)]="newFeatureEn" 
-                placeholder="Enter feature in English"
-                (keyup.enter)="addFeature('en')">
-              <button class="btn btn-success" (click)="addFeature('en')">Add</button>
-            </div>
-            <div class="features-list">
-              <div *ngFor="let feature of editingApartment.featuresEn; let i = index" class="feature-item">
-                <input 
-                  type="text" 
-                  [(ngModel)]="editingApartment.featuresEn[i]" 
-                  class="feature-edit-input">
-                <button class="btn btn-secondary" (click)="editFeature(i, 'en')">Edit</button>
-                <button class="btn btn-danger" (click)="removeFeature(i, 'en')">Remove</button>
+            } @else {
+              <div class="drive-actions">
+                <button class="btn btn-primary" (click)="exportFeaturesData()">
+                  Export Features Data (JSON)
+                </button>
+                <label class="btn btn-secondary">
+                  Import Features Data (JSON)
+                  <input type="file" accept=".json" (change)="importFeaturesData($event)" style="display: none;">
+                </label>
               </div>
+            }
+            
+            <div class="info-panel">
+              <h4>About Features Data</h4>
+              <p><strong>Export:</strong> Download all apartment listings with features as a JSON file to your computer.</p>
+              <p><strong>Import:</strong> Upload a previously exported JSON file to restore or update your features data.</p>
+              <p><strong>⚠️ Warning:</strong> Importing will replace your current data. Export first if you want to keep your current data!</p>
             </div>
           </div>
         </div>

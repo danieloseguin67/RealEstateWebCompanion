@@ -5,13 +5,33 @@
       <button class="btn btn-success" (click)="addRow()">
         + Add Unit Type
       </button>
-      <button class="btn btn-primary" (click)="exportData()">
-        Export Unit Types (JSON)
-      </button>
-      <label class="btn btn-secondary">
-        Import Unit Types (JSON)
-        <input type="file" accept=".json" (change)="importData($event)" style="display: none;">
-      </label>
+      @if (googleDriveFolderUrl) {
+        <div class="button-group">
+          <button class="btn btn-primary" (click)="exportData()" title="Export Unit Types data to local file">
+            📤 Export from Unit Types Manager
+          </button>
+          <button class="btn btn-success" (click)="openGoogleDriveToUpload()" title="Open Google Drive to upload exported file">
+            ⬆️ Put into SeguinDev Drive
+          </button>
+        </div>
+        <div class="button-group">
+          <button class="btn btn-primary" (click)="quickImportFromSeguinDev()" title="Download Unit Types file from SeguinDev Google Drive">
+            📥 Get from SeguinDev Drive
+          </button>
+          <label class="btn btn-secondary" title="Import Unit Types data from local file">
+            📋 Import to Unit Types Manager
+            <input type="file" accept=".json" (change)="importData($event)" style="display: none;">
+          </label>
+        </div>
+      } @else {
+        <button class="btn btn-primary" (click)="exportData()">
+          Export Unit Types (JSON)
+        </button>
+        <label class="btn btn-secondary">
+          Import Unit Types (JSON)
+          <input type="file" accept=".json" (change)="importData($event)" style="display: none;">
+        </label>
+      }
     </div>
   </div>
   <ag-grid-angular

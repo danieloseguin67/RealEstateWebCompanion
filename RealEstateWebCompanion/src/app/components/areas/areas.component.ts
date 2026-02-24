@@ -6,6 +6,8 @@ import { GoogleDriveService } from '../../services/google-drive.service';
 import { Area } from '../../models/data.models';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-areas',
@@ -19,6 +21,7 @@ export class AreasComponent implements OnInit {
   isEditing: boolean = false;
   editingArea: Area | null = null;
   originalArea: Area | null = null;
+  googleDriveFolderUrl: string | null = null;
   
   colDefs: ColDef[] = [
     { 
@@ -54,13 +57,23 @@ export class AreasComponent implements OnInit {
 
   constructor(
     private dataService: DataService,
-    private googleDriveService: GoogleDriveService
+    private googleDriveService: GoogleDriveService,
+    private http: HttpClient
   ) {}
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     this.dataService.areas$.subscribe(data => {
       this.rowData = data;
     });
+    
+    try {
+      const preferences = await firstValueFrom(this.http.get<any>('assets/data/preferences.json'));
+      if (preferences?.googledrive) {
+        this.googleDriveFolderUrl = preferences.googledrive;
+      }
+    } catch (error) {
+      console.error('Failed to load preferences:', error);
+    }
   }
 
   onGridReady(params: any): void {
@@ -132,6 +145,40 @@ export class AreasComponent implements OnInit {
 
   exportData(): void {
     this.googleDriveService.exportData({ areas: this.rowData });
+  }
+
+  openGoogleDriveToUpload(): void {
+    if (this.googleDriveFolderUrl) {
+      alert('🚀 Upload to SeguinDev Drive\n\nThe Google Drive folder will open in a new tab.\n\nTo upload your exported file:\n1. Locate the exported "areas.json" in your Downloads\n2. Drag and drop it into the Google Drive folder OR\n3. Right-click in the folder and select "File upload"');
+      window.open(this.googleDriveFolderUrl, '_blank');
+    } else {
+      alert('Google Drive folder not configured in preferences.json');
+    }
+  }
+
+  quickImportFromSeguinDev(): void {
+    if (!this.googleDriveFolderUrl) {
+      alert('Google Drive folder not configured in preferences.json');
+      return;
+    }
+
+    const message = `📥 Get File from SeguinDev Drive\n\n` +
+      `Follow these 3 simple steps:\n\n` +
+      `1️⃣ SeguinDev Google Drive will open in a new tab\n` +
+      `   • Look for the "areas.json" file\n\n` +
+      `2️⃣ Download the file to your computer\n` +
+      `   • Right-click on "areas.json"\n` +
+      `   • Select "Download"\n` +
+      `   • File will save to your Downloads folder\n\n` +
+      `3️⃣ Click the "📋 Import to Areas Manager" button\n` +
+      `   • Use the button next to this one\n` +
+      `   • Select the downloaded file from your Downloads\n` +
+      `   • Data will import automatically!\n\n` +
+      `Click OK to open SeguinDev Google Drive`;
+
+    if (confirm(message)) {
+      window.open(this.googleDriveFolderUrl, '_blank');
+    }
   }
 
   async importData(event: Event): Promise<void> {
