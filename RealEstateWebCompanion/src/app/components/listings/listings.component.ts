@@ -31,6 +31,17 @@ export class ListingsComponent implements OnInit {
   
   colDefs: ColDef[] = [
     { 
+      headerName: '#', 
+      width: 60, 
+      cellRenderer: (params: any) => {
+        return params.node.rowIndex + 1;
+      },
+      editable: false,
+      filter: false,
+      sortable: false,
+      pinned: 'left'
+    },
+    { 
       headerName: 'Actions', 
       width: 300, 
       cellRenderer: (params: any) => {
