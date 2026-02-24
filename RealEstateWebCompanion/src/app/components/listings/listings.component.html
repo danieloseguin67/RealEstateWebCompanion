@@ -271,7 +271,20 @@
               <div 
                 *ngFor="let image of editingApartment.images; let i = index" 
                 class="image-list-item">
-                <span class="image-name">{{ image }}</span>
+                <div *ngIf="editingImageIndex !== i" class="image-name-display">
+                  <span class="image-name">{{ image }}</span>
+                  <button class="btn btn-sm btn-secondary" (click)="startEditingImageName(i)">Edit</button>
+                </div>
+                <div *ngIf="editingImageIndex === i" class="image-name-edit">
+                  <input 
+                    type="text" 
+                    [(ngModel)]="editingImageName"
+                    (keyup.enter)="saveImageName(i)"
+                    (keyup.escape)="cancelEditingImageName()"
+                    class="image-name-input">
+                  <button class="btn btn-sm btn-success" (click)="saveImageName(i)">Save</button>
+                  <button class="btn btn-sm btn-secondary" (click)="cancelEditingImageName()">Cancel</button>
+                </div>
                 <button class="btn btn-sm btn-danger" (click)="removeImage(i)">Remove</button>
               </div>
             </div>

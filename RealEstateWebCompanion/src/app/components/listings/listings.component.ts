@@ -32,6 +32,8 @@ export class ListingsComponent implements OnInit {
   newFeatureFr = '';
   newFeatureEn = '';
   selectedFiles: FileList | null = null;
+  editingImageIndex: number | null = null;
+  editingImageName = '';
   
   // Check if current user is daniel.seguin
   get isDanielSeguin(): boolean {
@@ -249,6 +251,7 @@ export class ListingsComponent implements OnInit {
     this.showEditModal = false;
     this.editingApartment = null;
     this.activeTab = 'basic';
+    this.cancelEditingImageName();
   }
   
   saveEdit(): void {
@@ -358,6 +361,26 @@ export class ListingsComponent implements OnInit {
   removeImage(index: number): void {
     if (!this.editingApartment) return;
     this.editingApartment.images.splice(index, 1);
+  }
+
+  startEditingImageName(index: number): void {
+    if (!this.editingApartment) return;
+    this.editingImageIndex = index;
+    this.editingImageName = this.editingApartment.images[index];
+  }
+
+  saveImageName(index: number): void {
+    if (!this.editingApartment || !this.editingImageName.trim()) {
+      this.cancelEditingImageName();
+      return;
+    }
+    this.editingApartment.images[index] = this.editingImageName.trim();
+    this.cancelEditingImageName();
+  }
+
+  cancelEditingImageName(): void {
+    this.editingImageIndex = null;
+    this.editingImageName = '';
   }
   
   getImageUrl(filename: string): string {

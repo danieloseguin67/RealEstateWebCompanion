@@ -379,11 +379,39 @@
     border-radius: 4px;
     background-color: #f8f9fa;
     
+    .image-name-display {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      flex: 1;
+    }
+    
+    .image-name-edit {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+    }
+    
     .image-name {
       flex: 1;
       font-size: 14px;
       color: #333;
       word-break: break-all;
+    }
+    
+    .image-name-input {
+      flex: 1;
+      padding: 6px 10px;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      font-size: 14px;
+      
+      &:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+      }
     }
     
     .btn {
