@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject } from 'rxjs';
 import { SeoPage } from '../models/data.models';
 import { StorageService } from './storage.service';
+import { ApiService } from './api.service';
 
 @Injectable({
   providedIn: 'root'
@@ -14,7 +15,8 @@ export class SeoService {
 
   constructor(
     private http: HttpClient,
-    private storageService: StorageService
+    private storageService: StorageService,
+    private apiService: ApiService
   ) {
     this.loadSeoPages();
   }
@@ -24,14 +26,12 @@ export class SeoService {
     if (stored) {
       this.seoPagesSubject.next(stored);
     } else {
-      // Try to load from assets/data/seo.json, fallback to empty array
-      this.http.get<SeoPage[]>('assets/data/seo.json').subscribe({
+      this.apiService.getSeoPages().subscribe({
         next: (data) => {
           this.seoPagesSubject.next(data);
           this.storageService.setItem('seoPages', data);
         },
         error: () => {
-          // If file doesn't exist, initialize with empty array
           this.seoPagesSubject.next([]);
         }
       });

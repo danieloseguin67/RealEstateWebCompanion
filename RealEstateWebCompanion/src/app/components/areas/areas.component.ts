@@ -8,6 +8,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
+import { ApiService } from '../../services/api.service';
 
 @Component({
   selector: 'app-areas',
@@ -58,7 +59,8 @@ export class AreasComponent implements OnInit {
   constructor(
     private dataService: DataService,
     private googleDriveService: GoogleDriveService,
-    private http: HttpClient
+    private http: HttpClient,
+    private apiService: ApiService
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -67,7 +69,7 @@ export class AreasComponent implements OnInit {
     });
     
     try {
-      const preferences = await firstValueFrom(this.http.get<any>('assets/data/preferences.json'));
+      const preferences = await firstValueFrom(this.apiService.getPreferences());
       if (preferences?.googledrive) {
         this.googleDriveFolderUrl = preferences.googledrive;
       }

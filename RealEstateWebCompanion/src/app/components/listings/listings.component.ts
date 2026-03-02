@@ -9,6 +9,7 @@ import { AuthService } from '../../services/auth.service';
 import { Apartment } from '../../models/data.models';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
+import { ApiService } from '../../services/api.service';
 
 @Component({
   selector: 'app-listings',
@@ -163,7 +164,8 @@ export class ListingsComponent implements OnInit {
     private dataService: DataService,
     private googleDriveService: GoogleDriveService,
     private http: HttpClient,
-    private authService: AuthService
+    private authService: AuthService,
+    private apiService: ApiService
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -188,7 +190,7 @@ export class ListingsComponent implements OnInit {
     
     // Load Google Drive folder URL from preferences
     try {
-      const preferences = await firstValueFrom(this.http.get<any>('assets/data/preferences.json'));
+      const preferences = await firstValueFrom(this.apiService.getPreferences());
       if (preferences?.googledrive) {
         this.googleDriveFolderUrl = preferences.googledrive;
       }

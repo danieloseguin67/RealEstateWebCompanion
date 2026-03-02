@@ -3,14 +3,9 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, firstValueFrom } from 'rxjs';
 import { StorageService } from './storage.service';
 import { CryptoUtil } from '../utils/crypto.util';
+import { ApiService, Customer } from './api.service';
 
-export interface Customer {
-  customerId: string;
-  customerName: string;
-  customerEmail: string;
-  userId: string;
-  password: string;
-}
+export type { Customer };
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -23,14 +18,14 @@ export class AuthService {
   private loggedInSubject = new BehaviorSubject<boolean>(false);
   isLoggedIn$ = this.loggedInSubject.asObservable();
 
-  constructor(private http: HttpClient, private storage: StorageService) {
+  constructor(private http: HttpClient, private storage: StorageService, private apiService: ApiService) {
     const storedUser = this.storage.getItem<Customer>('authUser');
     this.loggedInSubject.next(!!storedUser);
     this.loadCustomers();
   }
 
   private loadCustomers(): void {
-    this.http.get<{ customers: Customer[] }>("assets/data/customer.json").subscribe({
+    this.apiService.getCustomers().subscribe({
       next: (data) => {
         this.customersSubject.next(data.customers || []);
         this.customersLoadedSubject.next(true);
@@ -52,9 +47,7 @@ export class AuthService {
     let customers = this.customersSubject.value;
     if (!customers || customers.length === 0) {
       try {
-        const data = await firstValueFrom(
-          this.http.get<{ customers: Customer[] }>("assets/data/customer.json")
-        );
+        const data = await firstValueFrom(this.apiService.getCustomers());
         customers = data.customers || [];
         this.customersSubject.next(customers);
         this.customersLoadedSubject.next(true);

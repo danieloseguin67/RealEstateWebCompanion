@@ -6,6 +6,7 @@ import { GoogleDriveService } from '../../services/google-drive.service';
 import { UnitType } from '../../models/data.models';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
+import { ApiService } from '../../services/api.service';
 
 @Component({
   selector: 'app-unit-types',
@@ -49,7 +50,8 @@ export class UnitTypesComponent implements OnInit {
   constructor(
     private dataService: DataService,
     private googleDriveService: GoogleDriveService,
-    private http: HttpClient
+    private http: HttpClient,
+    private apiService: ApiService
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -58,7 +60,7 @@ export class UnitTypesComponent implements OnInit {
     });
     
     try {
-      const preferences = await firstValueFrom(this.http.get<any>('assets/data/preferences.json'));
+      const preferences = await firstValueFrom(this.apiService.getPreferences());
       if (preferences?.googledrive) {
         this.googleDriveFolderUrl = preferences.googledrive;
       }
