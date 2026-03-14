@@ -1,14 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { AgGridAngular } from 'ag-grid-angular';
 import { ColDef, GridOptions } from 'ag-grid-community';
-import { DataService } from '../../services/data.service';
-import { GoogleDriveService } from '../../services/google-drive.service';
 import { Area } from '../../models/data.models';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
 import { ApiService } from '../../services/api.service';
+import { from } from 'rxjs';
+import { concatMap, finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-areas',
@@ -22,7 +20,9 @@ export class AreasComponent implements OnInit {
   isEditing: boolean = false;
   editingArea: Area | null = null;
   originalArea: Area | null = null;
-  googleDriveFolderUrl: string | null = null;
+  loading = false;
+  savingChanges = false;
+  private dirtyAreaIds = new Set<string>();
   
   colDefs: ColDef[] = [
     { 
@@ -35,10 +35,12 @@ export class AreasComponent implements OnInit {
       filter: false,
       sortable: false
     },
-    { field: 'id', headerName: 'ID', width: 80, filter: 'agNumberColumnFilter', sortable: true, editable: true },
-    { field: 'nameFr', headerName: 'Name (FR)', width: 200, filter: 'agTextColumnFilter', sortable: true, editable: true },
-    { field: 'nameEn', headerName: 'Name (EN)', width: 200, filter: 'agTextColumnFilter', sortable: true, editable: true },
-    { field: 'descriptionEn', headerName: 'Description (EN)', width: 350, filter: 'agTextColumnFilter', sortable: true, editable: true },
+    { field: 'id', headerName: 'ID', width: 150, filter: 'agTextColumnFilter', sortable: true, editable: true },
+    { field: 'name', headerName: 'Name', width: 180, filter: 'agTextColumnFilter', sortable: true, editable: true },
+    { field: 'nameFr', headerName: 'Name (FR)', width: 180, filter: 'agTextColumnFilter', sortable: true, editable: true },
+    { field: 'nameEn', headerName: 'Name (EN)', width: 180, filter: 'agTextColumnFilter', sortable: true, editable: true },
+    { field: 'description', headerName: 'Description (FR)', width: 300, filter: 'agTextColumnFilter', sortable: true, editable: true },
+    { field: 'descriptionEn', headerName: 'Description (EN)', width: 300, filter: 'agTextColumnFilter', sortable: true, editable: true },
     { field: 'link', headerName: 'Link', width: 200, filter: 'agTextColumnFilter', sortable: true, editable: true }
   ];
   
@@ -57,25 +59,39 @@ export class AreasComponent implements OnInit {
   };
 
   constructor(
-    private dataService: DataService,
-    private googleDriveService: GoogleDriveService,
-    private http: HttpClient,
     private apiService: ApiService
   ) {}
 
   async ngOnInit(): Promise<void> {
-    this.dataService.areas$.subscribe(data => {
-      this.rowData = data;
-    });
-    
-    try {
-      const preferences = await firstValueFrom(this.apiService.getPreferences());
-      if (preferences?.googledrive) {
-        this.googleDriveFolderUrl = preferences.googledrive;
+    this.loadAreas();
+  }
+
+  loadAreas(): void {
+    this.loading = true;
+    this.apiService.getAreas().subscribe({
+      next: (areas) => {
+        this.rowData = areas;
+        this.gridApi?.setGridOption('rowData', this.rowData);
+        this.dirtyAreaIds.clear();
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Failed to load areas from API:', error);
+        this.rowData = [];
+        this.gridApi?.setGridOption('rowData', this.rowData);
+        this.dirtyAreaIds.clear();
+        this.loading = false;
+        alert('Failed to load Areas from API. Please ensure the web API is running.');
       }
-    } catch (error) {
-      console.error('Failed to load preferences:', error);
-    }
+    });
+  }
+
+  get hasPendingChanges(): boolean {
+    return this.dirtyAreaIds.size > 0;
+  }
+
+  get pendingChangesCount(): number {
+    return this.dirtyAreaIds.size;
   }
 
   onGridReady(params: any): void {
@@ -92,21 +108,71 @@ export class AreasComponent implements OnInit {
   }
 
   onCellValueChanged(event: any): void {
-    this.saveData();
+    const area = event.data as Area;
+    if (!area?.id) return;
+    this.dirtyAreaIds.add(area.id);
+  }
+
+  saveAllChanges(): void {
+    if (this.savingChanges || !this.hasPendingChanges) return;
+
+    const areasToSave = this.rowData.filter(a => a?.id && this.dirtyAreaIds.has(a.id));
+    if (areasToSave.length === 0) {
+      this.dirtyAreaIds.clear();
+      return;
+    }
+
+    this.savingChanges = true;
+    from(areasToSave).pipe(
+      concatMap((area) => this.apiService.updateArea(area.id, area)),
+      finalize(() => {
+        this.savingChanges = false;
+      })
+    ).subscribe({
+      next: () => {},
+      complete: () => {
+        this.dirtyAreaIds.clear();
+      },
+      error: (error) => {
+        console.error('Failed to save area changes:', error);
+        alert('Failed to save one or more changes. Reloading latest data from API.');
+        this.loadAreas();
+      }
+    });
   }
 
   addRow(): void {
-    const newId = this.rowData.length > 0 ? Math.max(...this.rowData.map(r => r.id)) + 1 : 1;
+    const timestamp = Date.now();
+    const newId = `area-${timestamp}`;
     const newRow: Area = {
       id: newId,
+      name: '',
       nameFr: '',
       nameEn: '',
+      description: '',
       descriptionEn: '',
       link: ''
     };
+
+    // Optimistic UI insert; rollback on failure.
     this.rowData = [newRow, ...this.rowData];
     this.gridApi?.setGridOption('rowData', this.rowData);
-    this.saveData();
+
+    this.apiService.createArea(newRow).subscribe({
+      next: (created) => {
+        const index = this.rowData.findIndex(r => r.id === newId);
+        if (index !== -1) {
+          this.rowData[index] = created;
+          this.gridApi?.setGridOption('rowData', this.rowData);
+        }
+      },
+      error: (error) => {
+        console.error('Failed to create area:', error);
+        this.rowData = this.rowData.filter(r => r.id !== newId);
+        this.gridApi?.setGridOption('rowData', this.rowData);
+        alert('Failed to add Area. Please try again.');
+      }
+    });
   }
 
   editRow(node: any): void {
@@ -119,9 +185,20 @@ export class AreasComponent implements OnInit {
     if (this.editingArea) {
       const index = this.rowData.findIndex(row => row.id === this.editingArea!.id);
       if (index !== -1) {
-        this.rowData[index] = { ...this.editingArea };
+        const updated = { ...this.editingArea };
+        this.rowData[index] = updated;
         this.gridApi?.setGridOption('rowData', this.rowData);
-        this.saveData();
+
+        this.apiService.updateArea(updated.id, updated).subscribe({
+          next: () => {
+            this.dirtyAreaIds.delete(updated.id);
+          },
+          error: (error) => {
+            console.error('Failed to update area:', error);
+            alert('Failed to save Area changes. Reloading latest data from API.');
+            this.loadAreas();
+          }
+        });
       }
       this.cancelEdit();
     }
@@ -134,72 +211,25 @@ export class AreasComponent implements OnInit {
   }
 
   deleteRow(node: any): void {
-    if (confirm('Are you sure you want to delete this area?')) {
-      this.rowData = this.rowData.filter(row => row.id !== node.data.id);
-      this.gridApi?.setGridOption('rowData', this.rowData);
-      this.saveData();
-    }
-  }
+    const id = node?.data?.id as string;
+    if (!id) return;
 
-  saveData(): void {
-    this.dataService.updateAreas(this.rowData);
-  }
-
-  exportData(): void {
-    this.googleDriveService.exportData({ areas: this.rowData });
-  }
-
-  openGoogleDriveToUpload(): void {
-    if (this.googleDriveFolderUrl) {
-      alert('🚀 Upload to SeguinDev Drive\n\nThe Google Drive folder will open in a new tab.\n\nTo upload your exported file:\n1. Locate the exported "areas.json" in your Downloads\n2. Drag and drop it into the Google Drive folder OR\n3. Right-click in the folder and select "File upload"');
-      window.open(this.googleDriveFolderUrl, '_blank');
-    } else {
-      alert('Google Drive folder not configured in preferences.json');
-    }
-  }
-
-  quickImportFromSeguinDev(): void {
-    if (!this.googleDriveFolderUrl) {
-      alert('Google Drive folder not configured in preferences.json');
+    if (!confirm('Are you sure you want to delete this area?')) {
       return;
     }
 
-    const message = `📥 Get File from SeguinDev Drive\n\n` +
-      `Follow these 3 simple steps:\n\n` +
-      `1️⃣ SeguinDev Google Drive will open in a new tab\n` +
-      `   • Look for the "areas.json" file\n\n` +
-      `2️⃣ Download the file to your computer\n` +
-      `   • Right-click on "areas.json"\n` +
-      `   • Select "Download"\n` +
-      `   • File will save to your Downloads folder\n\n` +
-      `3️⃣ Click the "📋 Import to Areas Manager" button\n` +
-      `   • Use the button next to this one\n` +
-      `   • Select the downloaded file from your Downloads\n` +
-      `   • Data will import automatically!\n\n` +
-      `Click OK to open SeguinDev Google Drive`;
+    const previous = [...this.rowData];
+    this.rowData = this.rowData.filter(row => row.id !== id);
+    this.gridApi?.setGridOption('rowData', this.rowData);
 
-    if (confirm(message)) {
-      window.open(this.googleDriveFolderUrl, '_blank');
-    }
-  }
-
-  async importData(event: Event): Promise<void> {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files[0]) {
-      try {
-        const data = await this.googleDriveService.importDataFromFile(input.files[0]);
-        if (data.areas) {
-          this.dataService.updateAreas(data.areas);
-          alert('Areas imported successfully!');
-        } else if (Array.isArray(data)) {
-          this.dataService.updateAreas(data);
-          alert('Areas imported successfully!');
-        } else {
-          alert('Invalid file format. Expected areas array.');
-        }
-      } catch (error) {
-        alert('Error importing data: ' + error);
+    this.apiService.deleteArea(id).subscribe({
+      next: () => {},
+      error: (error) => {
+        console.error('Failed to delete area:', error);
+        this.rowData = previous;
+        this.gridApi?.setGridOption('rowData', this.rowData);
+        alert('Failed to delete Area. Please try again.');
       }
-    }
+    });
   }
 }

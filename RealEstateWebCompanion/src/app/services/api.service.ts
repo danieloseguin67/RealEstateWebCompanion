@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, of } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { Apartment, UnitType, Toggle, SeoPage } from '../models/data.models';
+import { Apartment, UnitType, Toggle, SeoPage, Area, ApartmentFeature, ApartmentImage } from '../models/data.models';
 
 export interface AppVersion {
   version: string;
@@ -73,5 +73,61 @@ export class ApiService {
     return this.http.get<SeoPage[]>(`${this.baseUrl}/seo`).pipe(
       catchError(() => this.http.get<SeoPage[]>('assets/data/seo.json'))
     );
+  }
+
+  getAreas(): Observable<Area[]> {
+    return this.http.get<Area[]>(`${this.baseUrl}/areas`);
+  }
+
+  createArea(area: Area): Observable<Area> {
+    return this.http.post<Area>(`${this.baseUrl}/areas`, area);
+  }
+
+  updateArea(areaId: string, area: Area): Observable<void> {
+    return this.http.put<void>(`${this.baseUrl}/areas/${areaId}`, area);
+  }
+
+  deleteArea(areaId: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/areas/${areaId}`);
+  }
+
+  getApartmentById(apartmentId: string): Observable<Apartment> {
+    return this.http.get<Apartment>(`${this.baseUrl}/apartments/${apartmentId}`);
+  }
+
+  createApartment(apartment: Apartment): Observable<Apartment> {
+    return this.http.post<Apartment>(`${this.baseUrl}/apartments`, apartment);
+  }
+
+  getApartmentFeatures(apartmentId: string): Observable<ApartmentFeature[]> {
+    return this.http.get<ApartmentFeature[]>(`${this.baseUrl}/ApartmentFeatures/apartment/${apartmentId}`);
+  }
+
+  createApartmentFeature(feature: Partial<ApartmentFeature>): Observable<ApartmentFeature> {
+    return this.http.post<ApartmentFeature>(`${this.baseUrl}/ApartmentFeatures`, feature);
+  }
+
+  updateApartmentFeature(featureId: number, feature: Partial<ApartmentFeature>): Observable<void> {
+    return this.http.put<void>(`${this.baseUrl}/ApartmentFeatures/${featureId}`, feature);
+  }
+
+  deleteApartmentFeature(featureId: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/ApartmentFeatures/${featureId}`);
+  }
+
+  getApartmentImages(apartmentId: string): Observable<ApartmentImage[]> {
+    return this.http.get<ApartmentImage[]>(`${this.baseUrl}/ApartmentImages/apartment/${apartmentId}`);
+  }
+
+  createApartmentImage(image: Partial<ApartmentImage>): Observable<ApartmentImage> {
+    return this.http.post<ApartmentImage>(`${this.baseUrl}/ApartmentImages`, image);
+  }
+
+  updateApartmentImage(imageId: number, image: Partial<ApartmentImage>): Observable<void> {
+    return this.http.put<void>(`${this.baseUrl}/ApartmentImages/${imageId}`, image);
+  }
+
+  deleteApartmentImage(imageId: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/ApartmentImages/${imageId}`);
   }
 }

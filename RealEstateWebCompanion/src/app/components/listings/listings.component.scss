@@ -205,6 +205,23 @@
   
   .tab-content {
     animation: fadeIn 0.2s;
+    min-height: 500px;
+    display: flex;
+    flex-direction: column;
+    
+    // Special styling for details tab with textareas
+    .form-group {
+      &:has(textarea) {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        
+        textarea {
+          flex: 1;
+          min-height: 220px;
+        }
+      }
+    }
   }
 }
 
@@ -584,6 +601,152 @@
         margin: 8px 0;
         color: #6c757d;
         line-height: 1.5;
+      }
+    }
+  }
+  
+  .features-manager {
+    h4 {
+      margin-top: 0;
+      margin-bottom: 20px;
+      color: #333;
+    }
+    
+    .loading-message {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+      font-style: italic;
+    }
+    
+    .features-grid {
+      margin-bottom: 30px;
+      
+      .features-table {
+        width: 100%;
+        table-layout: fixed;
+        border-collapse: collapse;
+        background-color: white;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        overflow: hidden;
+        
+        thead {
+          background-color: #e9ecef;
+          
+          th {
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 2px solid #dee2e6;
+            width: 45%;
+            
+            &:last-child {
+              text-align: center;
+              width: 180px;
+            }
+          }
+        }
+        
+        tbody {
+          tr {
+            transition: background-color 0.2s;
+            
+            &:hover:not(.editing):not(.empty-row) {
+              background-color: #f8f9fa;
+            }
+            
+            &.editing {
+              background-color: #fff3cd;
+            }
+            
+            &.empty-row {
+              background-color: #f8f9fa;
+              
+              td {
+                padding: 30px 15px;
+                color: #6c757d;
+                font-style: italic;
+              }
+            }
+
+            &.add-row {
+              background-color: #f8f9fa;
+
+              td {
+                border-top: 2px solid #dee2e6;
+              }
+
+              .add-select {
+                margin-bottom: 8px;
+
+                .form-select {
+                  height: 32px;
+                }
+              }
+            }
+
+            &.disabled {
+              opacity: 0.7;
+            }
+            
+            &:not(:last-child) td {
+              border-bottom: 1px solid #dee2e6;
+            }
+            
+            td {
+              padding: 12px 15px;
+              vertical-align: middle;
+              
+              &.text-center {
+                text-align: center;
+              }
+              
+              &.actions-cell {
+                text-align: center;
+                white-space: nowrap;
+                
+                .btn {
+                  margin: 0 3px;
+                  min-width: 70px;
+                }
+              }
+              
+              .form-control {
+                width: 100%;
+                padding: 6px 10px;
+                border: 1px solid #ced4da;
+                border-radius: 4px;
+                font-size: 0.9rem;
+                box-sizing: border-box;
+                
+                &:focus {
+                  outline: none;
+                  border-color: #80bdff;
+                  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+                }
+              }
+
+              .form-select {
+                width: 100%;
+                padding: 6px 10px;
+                border: 1px solid #ced4da;
+                border-radius: 4px;
+                font-size: 0.9rem;
+                background-color: white;
+                cursor: pointer;
+                box-sizing: border-box;
+
+                &:focus {
+                  outline: none;
+                  border-color: #80bdff;
+                  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+                }
+              }
+            }
+          }
+        }
       }
     }
   }

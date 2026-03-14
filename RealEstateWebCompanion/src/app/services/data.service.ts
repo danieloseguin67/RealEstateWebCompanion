@@ -52,7 +52,7 @@ export class DataService {
     if (stored) {
       this.areasSubject.next(stored);
     } else {
-      this.http.get<Area[]>('assets/data/areas.json').subscribe(data => {
+      this.apiService.getAreas().subscribe(data => {
         this.areasSubject.next(data);
         this.storageService.setItem('areas', data);
       });
