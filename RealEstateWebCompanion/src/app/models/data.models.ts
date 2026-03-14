@@ -20,9 +20,11 @@ export interface Apartment {
 }
 
 export interface Area {
-  id: number;
+  id: string;
+  name: string;
   nameFr: string;
   nameEn: string;
+  description: string;
   descriptionEn: string;
   link: string;
 }
@@ -46,4 +48,17 @@ export interface SeoPage {
   lastModified?: string;
   changeFrequency?: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never';
   priority?: number;
+}
+
+export interface ApartmentFeature {
+  id: number;
+  apartmentId: string;
+  name: string;
+  nameEn: string;
+}
+
+export interface ApartmentImage {
+  id: number;
+  apartmentId: string;
+  fileName: string;
 }

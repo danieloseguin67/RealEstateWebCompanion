@@ -4,6 +4,7 @@ import { Observable, BehaviorSubject } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Apartment, Area, UnitType, Toggle } from '../models/data.models';
 import { StorageService } from './storage.service';
+import { ApiService } from './api.service';
 
 @Injectable({
   providedIn: 'root'
@@ -21,7 +22,8 @@ export class DataService {
 
   constructor(
     private http: HttpClient,
-    private storageService: StorageService
+    private storageService: StorageService,
+    private apiService: ApiService
   ) {
     this.loadAllData();
   }
@@ -38,7 +40,7 @@ export class DataService {
     if (stored) {
       this.apartmentsSubject.next(stored);
     } else {
-      this.http.get<Apartment[]>('assets/data/apartments.json').subscribe(data => {
+      this.apiService.getApartments().subscribe(data => {
         this.apartmentsSubject.next(data);
         this.storageService.setItem('apartments', data);
       });
@@ -50,7 +52,7 @@ export class DataService {
     if (stored) {
       this.areasSubject.next(stored);
     } else {
-      this.http.get<Area[]>('assets/data/areas.json').subscribe(data => {
+      this.apiService.getAreas().subscribe(data => {
         this.areasSubject.next(data);
         this.storageService.setItem('areas', data);
       });
@@ -62,7 +64,7 @@ export class DataService {
     if (stored) {
       this.unitTypesSubject.next(stored);
     } else {
-      this.http.get<UnitType[]>('assets/data/unitTypes.json').subscribe(data => {
+      this.apiService.getUnitTypes().subscribe(data => {
         this.unitTypesSubject.next(data);
         this.storageService.setItem('unitTypes', data);
       });
@@ -74,7 +76,7 @@ export class DataService {
     if (stored) {
       this.togglesSubject.next(stored);
     } else {
-      this.http.get<Toggle[]>('assets/data/toggles.json').subscribe(data => {
+      this.apiService.getFeatures().subscribe(data => {
         this.togglesSubject.next(data);
         this.storageService.setItem('toggles', data);
       });
@@ -127,7 +129,7 @@ export class DataService {
 
   resetApartmentsToDefault(): void {
     this.storageService.removeItem('apartments');
-    this.http.get<Apartment[]>('assets/data/apartments.json').subscribe(data => {
+    this.apiService.getApartments().subscribe(data => {
       this.apartmentsSubject.next(data);
       this.storageService.setItem('apartments', data);
     });

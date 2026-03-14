@@ -8,6 +8,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
+import { ApiService } from '../../services/api.service';
 
 @Component({
   selector: 'app-seo-manager',
@@ -85,7 +86,8 @@ export class SeoManagerComponent implements OnInit {
   constructor(
     private seoService: SeoService,
     private googleDriveService: GoogleDriveService,
-    private http: HttpClient
+    private http: HttpClient,
+    private apiService: ApiService
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -96,7 +98,7 @@ export class SeoManagerComponent implements OnInit {
     
     // Load Google Drive folder URL from preferences
     try {
-      const preferences = await firstValueFrom(this.http.get<any>('assets/data/preferences.json'));
+      const preferences = await firstValueFrom(this.apiService.getPreferences());
       if (preferences?.googledrive) {
         this.googleDriveFolderUrl = preferences.googledrive;
       }

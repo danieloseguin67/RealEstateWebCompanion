@@ -2,15 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-
-interface AppVersion {
-  version: string;
-  appName: string;
-  author: string;
-  company: string;
-  copyright: string;
-  'update date'?: string;
-}
+import { ApiService, AppVersion } from '../../services/api.service';
 
 interface SupportForm {
   name: string;
@@ -36,10 +28,10 @@ export class HelpComponent implements OnInit {
     message: ''
   };
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private apiService: ApiService) {}
 
   ngOnInit(): void {
-    this.http.get<AppVersion>('assets/data/appversion.json').subscribe({
+    this.apiService.getAppVersion().subscribe({
       next: (data) => this.appVersion = data,
       error: (err) => console.error('Failed to load version info:', err)
     });

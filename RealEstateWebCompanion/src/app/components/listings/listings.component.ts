@@ -6,9 +6,10 @@ import { CommonModule } from '@angular/common';
 import { DataService } from '../../services/data.service';
 import { GoogleDriveService } from '../../services/google-drive.service';
 import { AuthService } from '../../services/auth.service';
-import { Apartment } from '../../models/data.models';
+import { ApiService } from '../../services/api.service';
+import { Apartment, ApartmentFeature, ApartmentImage } from '../../models/data.models';
 import { HttpClient } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
+import { catchError, concatMap, finalize, from, of, switchMap, throwError } from 'rxjs';
 
 @Component({
   selector: 'app-listings',
@@ -19,7 +20,6 @@ import { firstValueFrom } from 'rxjs';
 export class ListingsComponent implements OnInit {
   rowData: Apartment[] = [];
   private gridApi: any;
-  googleDriveFolderUrl: string | null = null;
   
   // Edit modal properties
   showEditModal = false;
@@ -34,6 +34,25 @@ export class ListingsComponent implements OnInit {
   selectedFiles: FileList | null = null;
   editingImageIndex: number | null = null;
   editingImageName = '';
+  apartmentImages: ApartmentImage[] = [];
+  loadingImages = false;
+  creatingImage = false;
+  updatingImage = false;
+  deletingImageId: number | null = null;
+  
+  // Apartment features properties
+  apartmentFeatures: ApartmentFeature[] = [];
+  availableFeatures: any[] = [];
+  selectedFeatureToggle: string = '';
+  selectedFeatureToggleFr: string = '';
+  selectedFeatureToggleEn: string = '';
+  newFeatureName = '';
+  newFeatureNameEn = '';
+  loadingFeatures = false;
+  creatingFeature = false;
+  editingFeatureId: number | null = null;
+  editFeatureName = '';
+  editFeatureNameEn = '';
   
   // Check if current user is daniel.seguin
   get isDanielSeguin(): boolean {
@@ -163,7 +182,8 @@ export class ListingsComponent implements OnInit {
     private dataService: DataService,
     private googleDriveService: GoogleDriveService,
     private http: HttpClient,
-    private authService: AuthService
+    private authService: AuthService,
+    private apiService: ApiService
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -174,6 +194,7 @@ export class ListingsComponent implements OnInit {
     // Load available toggles for features selection
     this.dataService.toggles$.subscribe(toggles => {
       this.availableToggles = toggles.map(t => t.toggle_name);
+      this.availableFeatures = toggles;
     });
     
     // Load available areas
@@ -185,16 +206,6 @@ export class ListingsComponent implements OnInit {
     this.dataService.unitTypes$.subscribe(types => {
       this.availableUnitTypes = types.map(t => t.unit_type_name);
     });
-    
-    // Load Google Drive folder URL from preferences
-    try {
-      const preferences = await firstValueFrom(this.http.get<any>('assets/data/preferences.json'));
-      if (preferences?.googledrive) {
-        this.googleDriveFolderUrl = preferences.googledrive;
-      }
-    } catch (error) {
-      console.error('Failed to load preferences:', error);
-    }
   }
 
   onGridReady(params: any): void {
@@ -245,6 +256,12 @@ export class ListingsComponent implements OnInit {
     this.editingApartment = { ...node.data };
     this.showEditModal = true;
     this.activeTab = 'basic';
+    
+    // Load apartment features from API
+    if (this.editingApartment?.id) {
+      this.loadApartmentFeatures(this.editingApartment.id);
+      this.loadApartmentImages(this.editingApartment.id);
+    }
   }
   
   closeEditModal(): void {
@@ -324,14 +341,232 @@ export class ListingsComponent implements OnInit {
     return this.editingApartment?.toggle_names.includes(featureName) || false;
   }
   
-  addImage(): void {
-    if (!this.editingApartment || !this.newImageUrl.trim()) return;
-    
-    if (!this.editingApartment.images) {
-      this.editingApartment.images = [];
+  updateFeatures(value: string): void {
+    if (!this.editingApartment) return;
+    // Split by newlines and filter out empty lines
+    this.editingApartment.features = value
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0);
+  }
+  
+  updateFeaturesEn(value: string): void {
+    if (!this.editingApartment) return;
+    // Split by newlines and filter out empty lines
+    this.editingApartment.featuresEn = value
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0);
+  }
+  
+  loadApartmentFeatures(apartmentId: string): void {
+    this.loadingFeatures = true;
+    this.apiService.getApartmentFeatures(apartmentId).subscribe({
+      next: (features) => {
+        this.apartmentFeatures = features;
+        this.loadingFeatures = false;
+      },
+      error: (error) => {
+        console.error('Error loading apartment features:', error);
+        this.apartmentFeatures = [];
+        this.loadingFeatures = false;
+      }
+    });
+  }
+
+  loadApartmentImages(apartmentId: string): void {
+    this.loadingImages = true;
+    this.apiService.getApartmentImages(apartmentId).subscribe({
+      next: (images) => {
+        this.apartmentImages = images;
+        if (this.editingApartment?.id === apartmentId) {
+          this.editingApartment.images = images.map(i => i.fileName);
+        }
+        this.loadingImages = false;
+      },
+      error: (error) => {
+        console.error('Error loading apartment images:', error);
+        this.apartmentImages = [];
+        if (this.editingApartment?.id === apartmentId) {
+          this.editingApartment.images = [];
+        }
+        this.loadingImages = false;
+      }
+    });
+  }
+  
+  addApartmentFeature(): void {
+    if (this.creatingFeature) {
+      return;
     }
-    this.editingApartment.images.push(this.newImageUrl.trim());
-    this.newImageUrl = '';
+
+    if (!this.editingApartment || !this.newFeatureName.trim() || !this.newFeatureNameEn.trim()) {
+      return;
+    }
+    
+    const newFeature: Partial<ApartmentFeature> = {
+      apartmentId: this.editingApartment.id,
+      name: this.newFeatureName.trim(),
+      nameEn: this.newFeatureNameEn.trim()
+    };
+
+    this.creatingFeature = true;
+
+    this.ensureApartmentExistsInApi(this.editingApartment).pipe(
+      switchMap(() => this.apiService.createApartmentFeature(newFeature)),
+      finalize(() => {
+        this.creatingFeature = false;
+      })
+    ).subscribe({
+      next: (created) => {
+        this.apartmentFeatures.push(created);
+        this.clearFeatureForm();
+      },
+      error: (error) => {
+        console.error('Error creating apartment feature:', error);
+        if (error?.status === 404) {
+          alert('Failed to add feature because the API endpoint was not found. Make sure the web API is running from this branch (Swagger should list ApartmentFeatures) and refresh the page.');
+          return;
+        }
+        alert('Failed to add feature. Please try again.');
+      }
+    });
+  }
+
+  private ensureApartmentExistsInApi(apartment: Apartment) {
+    return this.apiService.getApartmentById(apartment.id).pipe(
+      catchError((error) => {
+        if (error?.status === 404) {
+          return this.apiService.createApartment(apartment).pipe(
+            catchError((createError) => {
+              // If another client created it between GET and POST.
+              if (createError?.status === 409) {
+                return of(apartment);
+              }
+              return throwError(() => createError);
+            })
+          );
+        }
+        return throwError(() => error);
+      })
+    );
+  }
+  
+  removeApartmentFeature(featureId: number): void {
+    if (!confirm('Are you sure you want to remove this feature?')) {
+      return;
+    }
+    
+    this.apiService.deleteApartmentFeature(featureId).subscribe({
+      next: () => {
+        this.apartmentFeatures = this.apartmentFeatures.filter(f => f.id !== featureId);
+      },
+      error: (error) => {
+        console.error('Error deleting apartment feature:', error);
+        alert('Failed to remove feature. Please try again.');
+      }
+    });
+  }
+  
+  onFeatureSelect(lang?: 'fr' | 'en'): void {
+    const selectedToggle = lang === 'en'
+      ? this.selectedFeatureToggleEn
+      : this.selectedFeatureToggleFr || this.selectedFeatureToggle;
+
+    if (!selectedToggle) {
+      this.selectedFeatureToggle = '';
+      this.selectedFeatureToggleFr = '';
+      this.selectedFeatureToggleEn = '';
+      return;
+    }
+
+    const selectedFeature = this.availableFeatures.find(f => f.toggle_name === selectedToggle);
+    if (!selectedFeature) {
+      return;
+    }
+
+    const value = `${selectedFeature.toggle_image} ${selectedFeature.toggle_name}`;
+
+    // Keep dropdowns in sync; user can still edit the text inputs after selection.
+    this.selectedFeatureToggle = selectedToggle;
+    this.selectedFeatureToggleFr = selectedToggle;
+    this.selectedFeatureToggleEn = selectedToggle;
+    this.newFeatureName = value;
+    this.newFeatureNameEn = value;
+  }
+  
+  clearFeatureForm(): void {
+    this.selectedFeatureToggle = '';
+    this.selectedFeatureToggleFr = '';
+    this.selectedFeatureToggleEn = '';
+    this.newFeatureName = '';
+    this.newFeatureNameEn = '';
+  }
+  
+  startEditFeature(feature: ApartmentFeature): void {
+    this.editingFeatureId = feature.id;
+    this.editFeatureName = feature.name;
+    this.editFeatureNameEn = feature.nameEn;
+  }
+  
+  saveFeature(feature: ApartmentFeature): void {
+    if (!this.editFeatureName.trim() || !this.editFeatureNameEn.trim()) {
+      return;
+    }
+    
+    const updatedFeature: Partial<ApartmentFeature> = {
+      name: this.editFeatureName.trim(),
+      nameEn: this.editFeatureNameEn.trim()
+    };
+    
+    this.apiService.updateApartmentFeature(feature.id, updatedFeature).subscribe({
+      next: () => {
+        const index = this.apartmentFeatures.findIndex(f => f.id === feature.id);
+        if (index !== -1) {
+          this.apartmentFeatures[index].name = this.editFeatureName.trim();
+          this.apartmentFeatures[index].nameEn = this.editFeatureNameEn.trim();
+        }
+        this.cancelEdit();
+      },
+      error: (error) => {
+        console.error('Error updating apartment feature:', error);
+        alert('Failed to update feature. Please try again.');
+      }
+    });
+  }
+  
+  cancelEdit(): void {
+    this.editingFeatureId = null;
+    this.editFeatureName = '';
+    this.editFeatureNameEn = '';
+  }
+  
+  addImage(): void {
+    if (this.creatingImage) return;
+    if (!this.editingApartment || !this.newImageUrl.trim()) return;
+
+    const fileName = this.newImageUrl.trim();
+    this.creatingImage = true;
+
+    this.ensureApartmentExistsInApi(this.editingApartment).pipe(
+      switchMap(() => this.apiService.createApartmentImage({
+        apartmentId: this.editingApartment!.id,
+        fileName
+      })),
+      finalize(() => {
+        this.creatingImage = false;
+      })
+    ).subscribe({
+      next: (created) => {
+        this.apartmentImages.push(created);
+        this.editingApartment!.images = this.apartmentImages.map(i => i.fileName);
+        this.newImageUrl = '';
+      },
+      error: (error) => {
+        console.error('Error creating apartment image:', error);
+        alert('Failed to add image name. Please try again.');
+      }
+    });
   }
   
   onFileSelected(event: Event): void {
@@ -343,39 +578,112 @@ export class ListingsComponent implements OnInit {
   }
   
   uploadSelectedImages(): void {
+    if (this.creatingImage) return;
     if (!this.editingApartment || !this.selectedFiles) return;
-    
-    if (!this.editingApartment.images) {
-      this.editingApartment.images = [];
-    }
-    
-    // Simply add filenames to the images array
-    for (let i = 0; i < this.selectedFiles.length; i++) {
-      const file = this.selectedFiles[i];
-      this.editingApartment.images.push(file.name);
-    }
-    
+
+    const files = this.selectedFiles;
     this.selectedFiles = null;
+
+    const fileNames = Array.from(files).map(f => f.name).filter(Boolean);
+    if (fileNames.length === 0) return;
+
+    this.creatingImage = true;
+    this.ensureApartmentExistsInApi(this.editingApartment).pipe(
+      switchMap(() => from(fileNames).pipe(
+        concatMap((fileName) => this.apiService.createApartmentImage({
+          apartmentId: this.editingApartment!.id,
+          fileName
+        }))
+      )),
+      finalize(() => {
+        this.creatingImage = false;
+      })
+    ).subscribe({
+      next: (created) => {
+        this.apartmentImages.push(created);
+        this.editingApartment!.images = this.apartmentImages.map(i => i.fileName);
+      },
+      error: (error) => {
+        console.error('Error creating apartment images:', error);
+        alert('Failed to add one or more image names. Please try again.');
+      }
+    });
   }
   
   removeImage(index: number): void {
-    if (!this.editingApartment) return;
-    this.editingApartment.images.splice(index, 1);
+    const image = this.apartmentImages[index];
+    if (!image) return;
+
+    if (!confirm('Are you sure you want to remove this image?')) {
+      return;
+    }
+
+    this.deletingImageId = image.id;
+    this.apiService.deleteApartmentImage(image.id).pipe(
+      finalize(() => {
+        this.deletingImageId = null;
+      })
+    ).subscribe({
+      next: () => {
+        this.apartmentImages = this.apartmentImages.filter(i => i.id !== image.id);
+        if (this.editingApartment) {
+          this.editingApartment.images = this.apartmentImages.map(i => i.fileName);
+        }
+        if (this.editingImageIndex === index) {
+          this.cancelEditingImageName();
+        }
+      },
+      error: (error) => {
+        console.error('Error deleting apartment image:', error);
+        alert('Failed to remove image. Please try again.');
+      }
+    });
   }
 
   startEditingImageName(index: number): void {
-    if (!this.editingApartment) return;
+    if (this.updatingImage) return;
     this.editingImageIndex = index;
-    this.editingImageName = this.editingApartment.images[index];
+    this.editingImageName = this.apartmentImages[index]?.fileName ?? '';
   }
 
   saveImageName(index: number): void {
-    if (!this.editingApartment || !this.editingImageName.trim()) {
+    if (this.updatingImage || !this.editingImageName.trim()) {
       this.cancelEditingImageName();
       return;
     }
-    this.editingApartment.images[index] = this.editingImageName.trim();
-    this.cancelEditingImageName();
+
+    const image = this.apartmentImages[index];
+    if (!image) {
+      this.cancelEditingImageName();
+      return;
+    }
+
+    const newName = this.editingImageName.trim();
+    this.updatingImage = true;
+
+    this.apiService.updateApartmentImage(image.id, {
+      apartmentId: image.apartmentId,
+      fileName: newName
+    }).pipe(
+      finalize(() => {
+        this.updatingImage = false;
+      })
+    ).subscribe({
+      next: () => {
+        const idx = this.apartmentImages.findIndex(i => i.id === image.id);
+        if (idx !== -1) {
+          this.apartmentImages[idx].fileName = newName;
+        }
+        if (this.editingApartment) {
+          this.editingApartment.images = this.apartmentImages.map(i => i.fileName);
+        }
+        this.cancelEditingImageName();
+      },
+      error: (error) => {
+        console.error('Error renaming apartment image:', error);
+        alert('Failed to rename image. Please try again.');
+      }
+    });
   }
 
   cancelEditingImageName(): void {
@@ -399,101 +707,8 @@ export class ListingsComponent implements OnInit {
     this.dataService.updateApartments(this.rowData);
   }
 
-  exportData(): void {
-    this.googleDriveService.exportData({ apartments: this.rowData });
-  }
-
   resetToDefault(): void {
     this.dataService.resetApartmentsToDefault();
     alert('Apartments reset to default data.');
-  }
-
-  async importData(event: Event): Promise<void> {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files[0]) {
-      try {
-        const data = await this.googleDriveService.importDataFromFile(input.files[0]);
-        if (data.apartments) {
-          this.dataService.updateApartments(data.apartments);
-          alert('Apartments imported successfully!');
-        } else if (Array.isArray(data)) {
-          this.dataService.updateApartments(data);
-          alert('Apartments imported successfully!');
-        } else {
-          alert('Invalid file format. Expected apartments array.');
-        }
-      } catch (error) {
-        alert('Error importing data: ' + error);
-      }
-    }
-  }
-
-  // Features Data Management Methods
-  exportFeaturesData(): void {
-    this.googleDriveService.exportData({ apartments: this.rowData });
-  }
-
-  openGoogleDriveToUpload(): void {
-    if (this.googleDriveFolderUrl) {
-      alert('🚀 Upload to SeguinDev Drive\n\nThe Google Drive folder will open in a new tab.\n\nTo upload your exported file:\n1. Locate the exported "apartments.json" in your Downloads\n2. Drag and drop it into the Google Drive folder OR\n3. Right-click in the folder and select "File upload"');
-      window.open(this.googleDriveFolderUrl, '_blank');
-    } else {
-      alert('Google Drive folder not configured in preferences.json');
-    }
-  }
-
-  quickImportFromSeguinDev(): void {
-    if (!this.googleDriveFolderUrl) {
-      alert('Google Drive folder not configured in preferences.json');
-      return;
-    }
-
-    const message = `📥 Get File from SeguinDev Drive\n\n` +
-      `Follow these 3 simple steps:\n\n` +
-      `1️⃣ SeguinDev Google Drive will open in a new tab\n` +
-      `   • Look for the "apartments.json" file\n\n` +
-      `2️⃣ Download the file to your computer\n` +
-      `   • Right-click on "apartments.json"\n` +
-      `   • Select "Download"\n` +
-      `   • File will save to your Downloads folder\n\n` +
-      `3️⃣ Click the "📋 Import to Features Manager" button\n` +
-      `   • Use the button next to this one\n` +
-      `   • Select the downloaded file from your Downloads\n` +
-      `   • Data will import automatically!\n\n` +
-      `Click OK to open SeguinDev Google Drive`;
-
-    if (confirm(message)) {
-      window.open(this.googleDriveFolderUrl, '_blank');
-    }
-  }
-
-  async importFeaturesData(event: Event): Promise<void> {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      const file = input.files[0];
-      
-      const text = await file.text();
-      try {
-        const data = JSON.parse(text);
-        // Handle both formats: { apartments: [...] } or just [...]
-        if (data.apartments && Array.isArray(data.apartments)) {
-          this.rowData = data.apartments;
-          this.gridApi?.setGridOption('rowData', this.rowData);
-          this.saveData();
-          alert(`Successfully imported ${data.apartments.length} apartment listing(s) from local file.`);
-        } else if (Array.isArray(data)) {
-          this.rowData = data;
-          this.gridApi?.setGridOption('rowData', this.rowData);
-          this.saveData();
-          alert(`Successfully imported ${data.length} apartment listing(s) from local file.`);
-        } else {
-          alert('Invalid JSON file: Must be an array of apartments or an object with apartments property');
-        }
-      } catch (error) {
-        alert('Invalid JSON file: Unable to parse');
-      }
-      // Reset the file input
-      input.value = '';
-    }
   }
 }
