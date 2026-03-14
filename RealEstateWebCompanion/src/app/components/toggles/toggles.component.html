@@ -1,38 +1,6 @@
 <div class="toggles">
   <div class="header">
     <h2>Features Management</h2>
-    <div class="actions">
-      <button class="btn btn-success" (click)="addRow()">
-        + Add Feature
-      </button>
-      @if (googleDriveFolderUrl) {
-        <div class="button-group">
-          <button class="btn btn-primary" (click)="exportData()" title="Export Features data to local file">
-            📤 Export from Features Manager
-          </button>
-          <button class="btn btn-success" (click)="openGoogleDriveToUpload()" title="Open Google Drive to upload exported file">
-            ⬆️ Put into SeguinDev Drive
-          </button>
-        </div>
-        <div class="button-group">
-          <button class="btn btn-primary" (click)="quickImportFromSeguinDev()" title="Download Features file from SeguinDev Google Drive">
-            📥 Get from SeguinDev Drive
-          </button>
-          <label class="btn btn-secondary" title="Import Features data from local file">
-            📋 Import to Features Manager
-            <input type="file" accept=".json" (change)="importData($event)" style="display: none;">
-          </label>
-        </div>
-      } @else {
-        <button class="btn btn-primary" (click)="exportData()">
-          Export Features (JSON)
-        </button>
-        <label class="btn btn-secondary">
-          Import Features (JSON)
-          <input type="file" accept=".json" (change)="importData($event)" style="display: none;">
-        </label>
-      }
-    </div>
   </div>
   <ag-grid-angular
     style="width: 100%; height: 500px;"
@@ -42,6 +10,5 @@
     [defaultColDef]="defaultColDef"
     [gridOptions]="gridOptions"
     (gridReady)="onGridReady($event)"
-    (cellValueChanged)="onCellValueChanged($event)"
   />
 </div>

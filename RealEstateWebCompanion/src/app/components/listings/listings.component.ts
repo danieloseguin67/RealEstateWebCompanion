@@ -403,36 +403,6 @@ export class ListingsComponent implements OnInit {
     this.googleDriveService.exportData({ apartments: this.rowData });
   }
 
-  resetToDefault(): void {
-    this.dataService.resetApartmentsToDefault();
-    alert('Apartments reset to default data.');
-  }
-
-  async importData(event: Event): Promise<void> {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files[0]) {
-      try {
-        const data = await this.googleDriveService.importDataFromFile(input.files[0]);
-        if (data.apartments) {
-          this.dataService.updateApartments(data.apartments);
-          alert('Apartments imported successfully!');
-        } else if (Array.isArray(data)) {
-          this.dataService.updateApartments(data);
-          alert('Apartments imported successfully!');
-        } else {
-          alert('Invalid file format. Expected apartments array.');
-        }
-      } catch (error) {
-        alert('Error importing data: ' + error);
-      }
-    }
-  }
-
-  // Features Data Management Methods
-  exportFeaturesData(): void {
-    this.googleDriveService.exportData({ apartments: this.rowData });
-  }
-
   openGoogleDriveToUpload(): void {
     if (this.googleDriveFolderUrl) {
       alert('🚀 Upload to SeguinDev Drive\n\nThe Google Drive folder will open in a new tab.\n\nTo upload your exported file:\n1. Locate the exported "apartments.json" in your Downloads\n2. Drag and drop it into the Google Drive folder OR\n3. Right-click in the folder and select "File upload"');
@@ -456,7 +426,7 @@ export class ListingsComponent implements OnInit {
       `   • Right-click on "apartments.json"\n` +
       `   • Select "Download"\n` +
       `   • File will save to your Downloads folder\n\n` +
-      `3️⃣ Click the "📋 Import to Features Manager" button\n` +
+      `3️⃣ Click the "📋 Import to Listings Manager" button\n` +
       `   • Use the button next to this one\n` +
       `   • Select the downloaded file from your Downloads\n` +
       `   • Data will import automatically!\n\n` +
@@ -467,33 +437,28 @@ export class ListingsComponent implements OnInit {
     }
   }
 
-  async importFeaturesData(event: Event): Promise<void> {
+  resetToDefault(): void {
+    this.dataService.resetApartmentsToDefault();
+    alert('Apartments reset to default data.');
+  }
+
+  async importData(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      const file = input.files[0];
-      
-      const text = await file.text();
+    if (input.files && input.files[0]) {
       try {
-        const data = JSON.parse(text);
-        // Handle both formats: { apartments: [...] } or just [...]
-        if (data.apartments && Array.isArray(data.apartments)) {
-          this.rowData = data.apartments;
-          this.gridApi?.setGridOption('rowData', this.rowData);
-          this.saveData();
-          alert(`Successfully imported ${data.apartments.length} apartment listing(s) from local file.`);
+        const data = await this.googleDriveService.importDataFromFile(input.files[0]);
+        if (data.apartments) {
+          this.dataService.updateApartments(data.apartments);
+          alert('Apartments imported successfully!');
         } else if (Array.isArray(data)) {
-          this.rowData = data;
-          this.gridApi?.setGridOption('rowData', this.rowData);
-          this.saveData();
-          alert(`Successfully imported ${data.length} apartment listing(s) from local file.`);
+          this.dataService.updateApartments(data);
+          alert('Apartments imported successfully!');
         } else {
-          alert('Invalid JSON file: Must be an array of apartments or an object with apartments property');
+          alert('Invalid file format. Expected apartments array.');
         }
       } catch (error) {
-        alert('Invalid JSON file: Unable to parse');
+        alert('Error importing data: ' + error);
       }
-      // Reset the file input
-      input.value = '';
     }
   }
 }

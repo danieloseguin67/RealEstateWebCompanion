@@ -188,48 +188,30 @@
         
         <!-- Features Tab -->
         <div class="tab-content" *ngIf="activeTab === 'features'">
-          <div class="features-drive-manager">
-            <h3>Features Data Management</h3>
-            <p>Manage your listings features data with Google Drive integration.</p>
-            
-            @if (googleDriveFolderUrl) {
-              <div class="drive-actions">
-                <div class="button-group">
-                  <button class="btn btn-primary" (click)="exportFeaturesData()" title="Export Features data to local file">
-                    📤 Export from Features Manager
-                  </button>
-                  <button class="btn btn-success" (click)="openGoogleDriveToUpload()" title="Open Google Drive to upload exported file">
-                    ⬆️ Put into SeguinDev Drive
-                  </button>
-                </div>
-                <div class="button-group">
-                  <button class="btn btn-primary" (click)="quickImportFromSeguinDev()" title="Download Features file from SeguinDev Google Drive">
-                    📥 Get from SeguinDev Drive
-                  </button>
-                  <label class="btn btn-secondary" title="Import Features data from local file">
-                    📋 Import to Features Manager
-                    <input type="file" accept=".json" (change)="importFeaturesData($event)" style="display: none;">
-                  </label>
+          <div class="features-section">
+            <h4>Features (French)</h4>
+            @if (editingApartment.features.length) {
+              <div class="features-list">
+                <div class="feature-item" *ngFor="let feature of editingApartment.features">
+                  <input class="feature-edit-input" [value]="feature" readonly>
                 </div>
               </div>
             } @else {
-              <div class="drive-actions">
-                <button class="btn btn-primary" (click)="exportFeaturesData()">
-                  Export Features Data (JSON)
-                </button>
-                <label class="btn btn-secondary">
-                  Import Features Data (JSON)
-                  <input type="file" accept=".json" (change)="importFeaturesData($event)" style="display: none;">
-                </label>
-              </div>
+              <p>No French features.</p>
             }
-            
-            <div class="info-panel">
-              <h4>About Features Data</h4>
-              <p><strong>Export:</strong> Download all apartment listings with features as a JSON file to your computer.</p>
-              <p><strong>Import:</strong> Upload a previously exported JSON file to restore or update your features data.</p>
-              <p><strong>⚠️ Warning:</strong> Importing will replace your current data. Export first if you want to keep your current data!</p>
-            </div>
+          </div>
+
+          <div class="features-section">
+            <h4>Features (English)</h4>
+            @if (editingApartment.featuresEn.length) {
+              <div class="features-list">
+                <div class="feature-item" *ngFor="let feature of editingApartment.featuresEn">
+                  <input class="feature-edit-input" [value]="feature" readonly>
+                </div>
+              </div>
+            } @else {
+              <p>No English features.</p>
+            }
           </div>
         </div>
         

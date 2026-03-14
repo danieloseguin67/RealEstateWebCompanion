@@ -33,6 +33,8 @@ export interface UnitType {
 
 export interface Toggle {
   toggle_name: string;
+  toggle_name_fr?: string;
+  toggle_name_en?: string;
   toggle_image: string;
 }
 
