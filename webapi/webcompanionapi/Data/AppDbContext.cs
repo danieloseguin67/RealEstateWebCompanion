@@ -14,6 +14,9 @@ public class AppDbContext : DbContext
     public DbSet<SeoPage> SeoPages { get; set; }
     public DbSet<Feature> Features { get; set; }
     public DbSet<UnitType> UnitTypes { get; set; }
+    public DbSet<Area> Areas { get; set; }
+    public DbSet<ApartmentFeature> ApartmentFeatures { get; set; }
+    public DbSet<ApartmentImage> ApartmentImages { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -26,5 +29,8 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<SeoPage>().ToTable("seo");
         modelBuilder.Entity<Feature>().ToTable("features");
         modelBuilder.Entity<UnitType>().ToTable("unittypes");
+        modelBuilder.Entity<Area>().ToTable("areas");
+        modelBuilder.Entity<ApartmentFeature>().ToTable("apartment_features");
+        modelBuilder.Entity<ApartmentImage>().ToTable("apartment_images");
     }
 }

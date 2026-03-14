@@ -154,3 +154,54 @@ public class UnitTypeDto
     [JsonPropertyName("unit_type_name")]
     public string UnitTypeName { get; set; } = string.Empty;
 }
+
+public class AreaDto
+{
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = string.Empty;
+
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = string.Empty;
+
+    [JsonPropertyName("nameFr")]
+    public string NameFr { get; set; } = string.Empty;
+
+    [JsonPropertyName("nameEn")]
+    public string NameEn { get; set; } = string.Empty;
+
+    [JsonPropertyName("description")]
+    public string Description { get; set; } = string.Empty;
+
+    [JsonPropertyName("descriptionEn")]
+    public string DescriptionEn { get; set; } = string.Empty;
+
+    [JsonPropertyName("link")]
+    public string Link { get; set; } = string.Empty;
+}
+
+public class ApartmentFeatureDto
+{
+    [JsonPropertyName("id")]
+    public int Id { get; set; }
+
+    [JsonPropertyName("apartmentId")]
+    public string ApartmentId { get; set; } = string.Empty;
+
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = string.Empty;
+
+    [JsonPropertyName("nameEn")]
+    public string NameEn { get; set; } = string.Empty;
+}
+
+public class ApartmentImageDto
+{
+    [JsonPropertyName("id")]
+    public int Id { get; set; }
+
+    [JsonPropertyName("apartmentId")]
+    public string ApartmentId { get; set; } = string.Empty;
+
+    [JsonPropertyName("fileName")]
+    public string FileName { get; set; } = string.Empty;
+}
