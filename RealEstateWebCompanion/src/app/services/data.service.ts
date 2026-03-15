@@ -9,6 +9,7 @@ import { StorageService } from './storage.service';
   providedIn: 'root'
 })
 export class DataService {
+  private readonly APP_DATA_VERSION_KEY = 'appDataVersion';
   private apartmentsSubject = new BehaviorSubject<Apartment[]>([]);
   private areasSubject = new BehaviorSubject<Area[]>([]);
   private unitTypesSubject = new BehaviorSubject<UnitType[]>([]);
@@ -23,7 +24,34 @@ export class DataService {
     private http: HttpClient,
     private storageService: StorageService
   ) {
-    this.loadAllData();
+    this.ensureAppDataVersionAndLoad();
+  }
+
+  private ensureAppDataVersionAndLoad(): void {
+    const storedVersion = this.storageService.getItem<string>(this.APP_DATA_VERSION_KEY);
+
+    this.http.get<{ version?: string }>('assets/data/appversion.json').subscribe({
+      next: (appVersion) => {
+        const currentVersion = appVersion?.version;
+
+        if (currentVersion && storedVersion !== currentVersion) {
+          this.storageService.removeItem('apartments');
+          this.storageService.removeItem('areas');
+          this.storageService.removeItem('unitTypes');
+          this.storageService.removeItem('toggles');
+        }
+
+        if (currentVersion) {
+          this.storageService.setItem(this.APP_DATA_VERSION_KEY, currentVersion);
+        }
+
+        this.loadAllData();
+      },
+      error: () => {
+        // If version file can't be loaded, fall back to existing caching behavior.
+        this.loadAllData();
+      }
+    });
   }
 
   loadAllData(): void {
