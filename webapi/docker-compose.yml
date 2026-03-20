@@ -1,6 +1,7 @@
 services:
   db:
     image: mcr.microsoft.com/mssql/server:2022-latest
+    restart: unless-stopped
     environment:
       ACCEPT_EULA: "Y"
       MSSQL_SA_PASSWORD: ${SA_PASSWORD}
@@ -42,6 +43,7 @@ services:
     build:
       context: ./webcompanionapi
       dockerfile: Dockerfile
+    restart: unless-stopped
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: Server=db;Database=realestatewebcompanion;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True;Encrypt=False;

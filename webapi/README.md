@@ -51,6 +51,8 @@ cd webapi
 docker compose --env-file .env up --build
 ```
 
+Tip: if you want the containers to come back automatically after a laptop reboot, the compose file uses `restart: unless-stopped` so Docker can auto-restart them once Docker Desktop is running.
+
 Optional (recommended on first run): initialize the database automatically via the one-shot `db-init` service:
 
 ```bash
@@ -79,6 +81,8 @@ Notes:
 
 - The compose file exposes SQL Server on `localhost:14330`.
 - Login is `sa` and the password is your `SA_PASSWORD`.
+
+SQL Server connection note (Windows tools): in SSMS, use `localhost,14330` (comma), not `localhost:14330`.
 
 ### HTTPS redirection in containers
 
