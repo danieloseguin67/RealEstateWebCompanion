@@ -164,14 +164,8 @@
           <div class="features-manager">
             <h4>Apartment Features</h4>
             
-            <!-- Loading state -->
-            <div *ngIf="loadingFeatures" class="loading-message">
-              Loading features...
-            </div>
-            
             <!-- Features Grid -->
-            <div *ngIf="!loadingFeatures" class="features-grid">
-              <!-- Features Table - Always show structure -->
+            <div class="features-grid">
               <table class="features-table">
                 <thead>
                   <tr>
@@ -182,28 +176,28 @@
                 </thead>
                 <tbody>
                   <!-- Empty state -->
-                  <tr *ngIf="apartmentFeatures.length === 0" class="empty-row">
+                  <tr *ngIf="!editingApartment.features?.length" class="empty-row">
                     <td colspan="3" class="text-center">
                       No features added yet. Use the form below to add features.
                     </td>
                   </tr>
                   
                   <!-- Feature rows -->
-                  <tr *ngFor="let feature of apartmentFeatures" [class.editing]="editingFeatureId === feature.id">
+                  <tr *ngFor="let feature of editingApartment.features; let i = index" [class.editing]="editingFeatureId === i">
                     <!-- Display mode -->
-                    <ng-container *ngIf="editingFeatureId !== feature.id">
-                      <td>{{ feature.name }}</td>
-                      <td>{{ feature.nameEn }}</td>
+                    <ng-container *ngIf="editingFeatureId !== i">
+                      <td>{{ feature }}</td>
+                      <td>{{ editingApartment.featuresEn[i] }}</td>
                       <td class="actions-cell">
                         <button 
                           class="btn btn-primary btn-sm" 
-                          (click)="startEditFeature(feature)"
+                          (click)="startEditFeature(i)"
                           title="Edit feature">
                           Edit
                         </button>
                         <button 
                           class="btn btn-danger btn-sm" 
-                          (click)="removeApartmentFeature(feature.id)"
+                          (click)="removeApartmentFeature(i)"
                           title="Delete feature">
                           Delete
                         </button>
@@ -211,14 +205,14 @@
                     </ng-container>
                     
                     <!-- Edit mode -->
-                    <ng-container *ngIf="editingFeatureId === feature.id">
+                    <ng-container *ngIf="editingFeatureId === i">
                       <td>
                         <input 
                           type="text" 
                           [(ngModel)]="editFeatureName" 
                           class="form-control"
                           placeholder="Feature (French)"
-                          (keyup.enter)="saveFeature(feature)">
+                          (keyup.enter)="saveFeature(i)">
                       </td>
                       <td>
                         <input 
@@ -226,12 +220,12 @@
                           [(ngModel)]="editFeatureNameEn" 
                           class="form-control"
                           placeholder="Feature (English)"
-                          (keyup.enter)="saveFeature(feature)">
+                          (keyup.enter)="saveFeature(i)">
                       </td>
                       <td class="actions-cell">
                         <button 
                           class="btn btn-success btn-sm" 
-                          (click)="saveFeature(feature)"
+                          (click)="saveFeature(i)"
                           [disabled]="!editFeatureName.trim() || !editFeatureNameEn.trim()"
                           title="Save changes">
                           Save
@@ -249,57 +243,35 @@
                   <!-- Add new feature row (bottom of grid) -->
                   <tr class="add-row" [class.disabled]="editingFeatureId !== null">
                     <td>
-                      <div class="add-select">
-                        <select
-                          [(ngModel)]="selectedFeatureToggleFr"
-                          (ngModelChange)="onFeatureSelect('fr')"
-                          class="form-select">
-                          <option value="">-- Select existing (optional) --</option>
-                          <option *ngFor="let feature of availableFeatures" [value]="feature.toggle_name">
-                            {{ feature.toggle_image }} {{ feature.toggle_name }}
-                          </option>
-                        </select>
-                      </div>
                       <input
                         type="text"
                         [(ngModel)]="newFeatureName"
                         class="form-control"
                         placeholder="Feature (French)"
                         (keyup.enter)="addApartmentFeature()"
-                        [disabled]="editingFeatureId !== null || creatingFeature">
+                        [disabled]="editingFeatureId !== null">
                     </td>
                     <td>
-                      <div class="add-select">
-                        <select
-                          [(ngModel)]="selectedFeatureToggleEn"
-                          (ngModelChange)="onFeatureSelect('en')"
-                          class="form-select">
-                          <option value="">-- Select existing (optional) --</option>
-                          <option *ngFor="let feature of availableFeatures" [value]="feature.toggle_name">
-                            {{ feature.toggle_image }} {{ feature.toggle_name }}
-                          </option>
-                        </select>
-                      </div>
                       <input
                         type="text"
                         [(ngModel)]="newFeatureNameEn"
                         class="form-control"
                         placeholder="Feature (English)"
                         (keyup.enter)="addApartmentFeature()"
-                        [disabled]="editingFeatureId !== null || creatingFeature">
+                        [disabled]="editingFeatureId !== null">
                     </td>
                     <td class="actions-cell">
                       <button
                         class="btn btn-success btn-sm"
                         (click)="addApartmentFeature()"
-                        [disabled]="editingFeatureId !== null || creatingFeature || !newFeatureName.trim() || !newFeatureNameEn.trim()"
+                        [disabled]="editingFeatureId !== null || !newFeatureName.trim() || !newFeatureNameEn.trim()"
                         title="Add feature">
                         Add
                       </button>
                       <button
                         class="btn btn-secondary btn-sm"
                         (click)="clearFeatureForm()"
-                        [disabled]="editingFeatureId !== null || creatingFeature"
+                        [disabled]="editingFeatureId !== null"
                         type="button"
                         title="Clear">
                         Clear

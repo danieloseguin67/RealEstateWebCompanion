@@ -99,6 +99,10 @@ export class ApiService {
     return this.http.post<Apartment>(`${this.baseUrl}/apartments`, apartment);
   }
 
+  updateApartment(id: string, apartment: Apartment): Observable<void> {
+    return this.http.put<void>(`${this.baseUrl}/apartments/${id}`, apartment);
+  }
+
   getApartmentFeatures(apartmentId: string): Observable<ApartmentFeature[]> {
     return this.http.get<ApartmentFeature[]>(`${this.baseUrl}/ApartmentFeatures/apartment/${apartmentId}`);
   }

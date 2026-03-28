@@ -7,7 +7,7 @@ import { DataService } from '../../services/data.service';
 import { GoogleDriveService } from '../../services/google-drive.service';
 import { AuthService } from '../../services/auth.service';
 import { ApiService } from '../../services/api.service';
-import { Apartment, ApartmentFeature, ApartmentImage } from '../../models/data.models';
+import { Apartment, ApartmentImage } from '../../models/data.models';
 import { HttpClient } from '@angular/common/http';
 import { catchError, concatMap, finalize, from, of, switchMap, throwError } from 'rxjs';
 
@@ -41,15 +41,8 @@ export class ListingsComponent implements OnInit {
   deletingImageId: number | null = null;
   
   // Apartment features properties
-  apartmentFeatures: ApartmentFeature[] = [];
-  availableFeatures: any[] = [];
-  selectedFeatureToggle: string = '';
-  selectedFeatureToggleFr: string = '';
-  selectedFeatureToggleEn: string = '';
   newFeatureName = '';
   newFeatureNameEn = '';
-  loadingFeatures = false;
-  creatingFeature = false;
   editingFeatureId: number | null = null;
   editFeatureName = '';
   editFeatureNameEn = '';
@@ -191,10 +184,9 @@ export class ListingsComponent implements OnInit {
       this.rowData = data;
     });
     
-    // Load available toggles for features selection
+    // Load available toggles for amenities checkboxes
     this.dataService.toggles$.subscribe(toggles => {
       this.availableToggles = toggles.map(t => t.toggle_name);
-      this.availableFeatures = toggles;
     });
     
     // Load available areas
@@ -257,9 +249,7 @@ export class ListingsComponent implements OnInit {
     this.showEditModal = true;
     this.activeTab = 'basic';
     
-    // Load apartment features from API
     if (this.editingApartment?.id) {
-      this.loadApartmentFeatures(this.editingApartment.id);
       this.loadApartmentImages(this.editingApartment.id);
     }
   }
@@ -273,12 +263,16 @@ export class ListingsComponent implements OnInit {
   
   saveEdit(): void {
     if (this.editingApartment) {
-      const index = this.rowData.findIndex(r => r.id === this.editingApartment!.id);
+      const updated = { ...this.editingApartment };
+      const index = this.rowData.findIndex(r => r.id === updated.id);
       if (index !== -1) {
-        this.rowData[index] = { ...this.editingApartment };
+        this.rowData[index] = updated;
         this.gridApi?.setGridOption('rowData', this.rowData);
         this.saveData();
       }
+      this.apiService.updateApartment(updated.id, updated).subscribe({
+        error: (err) => console.error('Failed to save apartment to API:', err)
+      });
     }
     this.closeEditModal();
   }
@@ -359,21 +353,6 @@ export class ListingsComponent implements OnInit {
       .filter(line => line.length > 0);
   }
   
-  loadApartmentFeatures(apartmentId: string): void {
-    this.loadingFeatures = true;
-    this.apiService.getApartmentFeatures(apartmentId).subscribe({
-      next: (features) => {
-        this.apartmentFeatures = features;
-        this.loadingFeatures = false;
-      },
-      error: (error) => {
-        console.error('Error loading apartment features:', error);
-        this.apartmentFeatures = [];
-        this.loadingFeatures = false;
-      }
-    });
-  }
-
   loadApartmentImages(apartmentId: string): void {
     this.loadingImages = true;
     this.apiService.getApartmentImages(apartmentId).subscribe({
@@ -396,41 +375,15 @@ export class ListingsComponent implements OnInit {
   }
   
   addApartmentFeature(): void {
-    if (this.creatingFeature) {
-      return;
-    }
+    if (this.editingFeatureId !== null) return;
+    if (!this.editingApartment || !this.newFeatureName.trim() || !this.newFeatureNameEn.trim()) return;
 
-    if (!this.editingApartment || !this.newFeatureName.trim() || !this.newFeatureNameEn.trim()) {
-      return;
-    }
-    
-    const newFeature: Partial<ApartmentFeature> = {
-      apartmentId: this.editingApartment.id,
-      name: this.newFeatureName.trim(),
-      nameEn: this.newFeatureNameEn.trim()
-    };
+    if (!this.editingApartment.features) this.editingApartment.features = [];
+    if (!this.editingApartment.featuresEn) this.editingApartment.featuresEn = [];
 
-    this.creatingFeature = true;
-
-    this.ensureApartmentExistsInApi(this.editingApartment).pipe(
-      switchMap(() => this.apiService.createApartmentFeature(newFeature)),
-      finalize(() => {
-        this.creatingFeature = false;
-      })
-    ).subscribe({
-      next: (created) => {
-        this.apartmentFeatures.push(created);
-        this.clearFeatureForm();
-      },
-      error: (error) => {
-        console.error('Error creating apartment feature:', error);
-        if (error?.status === 404) {
-          alert('Failed to add feature because the API endpoint was not found. Make sure the web API is running from this branch (Swagger should list ApartmentFeatures) and refresh the page.');
-          return;
-        }
-        alert('Failed to add feature. Please try again.');
-      }
-    });
+    this.editingApartment.features.push(this.newFeatureName.trim());
+    this.editingApartment.featuresEn.push(this.newFeatureNameEn.trim());
+    this.clearFeatureForm();
   }
 
   private ensureApartmentExistsInApi(apartment: Apartment) {
@@ -452,87 +405,29 @@ export class ListingsComponent implements OnInit {
     );
   }
   
-  removeApartmentFeature(featureId: number): void {
-    if (!confirm('Are you sure you want to remove this feature?')) {
-      return;
-    }
-    
-    this.apiService.deleteApartmentFeature(featureId).subscribe({
-      next: () => {
-        this.apartmentFeatures = this.apartmentFeatures.filter(f => f.id !== featureId);
-      },
-      error: (error) => {
-        console.error('Error deleting apartment feature:', error);
-        alert('Failed to remove feature. Please try again.');
-      }
-    });
-  }
-  
-  onFeatureSelect(lang?: 'fr' | 'en'): void {
-    const selectedToggle = lang === 'en'
-      ? this.selectedFeatureToggleEn
-      : this.selectedFeatureToggleFr || this.selectedFeatureToggle;
-
-    if (!selectedToggle) {
-      this.selectedFeatureToggle = '';
-      this.selectedFeatureToggleFr = '';
-      this.selectedFeatureToggleEn = '';
-      return;
-    }
-
-    const selectedFeature = this.availableFeatures.find(f => f.toggle_name === selectedToggle);
-    if (!selectedFeature) {
-      return;
-    }
-
-    const value = `${selectedFeature.toggle_image} ${selectedFeature.toggle_name}`;
-
-    // Keep dropdowns in sync; user can still edit the text inputs after selection.
-    this.selectedFeatureToggle = selectedToggle;
-    this.selectedFeatureToggleFr = selectedToggle;
-    this.selectedFeatureToggleEn = selectedToggle;
-    this.newFeatureName = value;
-    this.newFeatureNameEn = value;
+  removeApartmentFeature(index: number): void {
+    if (!this.editingApartment) return;
+    if (!confirm('Are you sure you want to remove this feature?')) return;
+    this.editingApartment.features.splice(index, 1);
+    this.editingApartment.featuresEn.splice(index, 1);
   }
   
   clearFeatureForm(): void {
-    this.selectedFeatureToggle = '';
-    this.selectedFeatureToggleFr = '';
-    this.selectedFeatureToggleEn = '';
     this.newFeatureName = '';
     this.newFeatureNameEn = '';
   }
   
-  startEditFeature(feature: ApartmentFeature): void {
-    this.editingFeatureId = feature.id;
-    this.editFeatureName = feature.name;
-    this.editFeatureNameEn = feature.nameEn;
+  startEditFeature(index: number): void {
+    this.editingFeatureId = index;
+    this.editFeatureName = this.editingApartment!.features[index];
+    this.editFeatureNameEn = this.editingApartment!.featuresEn[index];
   }
   
-  saveFeature(feature: ApartmentFeature): void {
-    if (!this.editFeatureName.trim() || !this.editFeatureNameEn.trim()) {
-      return;
-    }
-    
-    const updatedFeature: Partial<ApartmentFeature> = {
-      name: this.editFeatureName.trim(),
-      nameEn: this.editFeatureNameEn.trim()
-    };
-    
-    this.apiService.updateApartmentFeature(feature.id, updatedFeature).subscribe({
-      next: () => {
-        const index = this.apartmentFeatures.findIndex(f => f.id === feature.id);
-        if (index !== -1) {
-          this.apartmentFeatures[index].name = this.editFeatureName.trim();
-          this.apartmentFeatures[index].nameEn = this.editFeatureNameEn.trim();
-        }
-        this.cancelEdit();
-      },
-      error: (error) => {
-        console.error('Error updating apartment feature:', error);
-        alert('Failed to update feature. Please try again.');
-      }
-    });
+  saveFeature(index: number): void {
+    if (!this.editFeatureName.trim() || !this.editFeatureNameEn.trim()) return;
+    this.editingApartment!.features[index] = this.editFeatureName.trim();
+    this.editingApartment!.featuresEn[index] = this.editFeatureNameEn.trim();
+    this.cancelEdit();
   }
   
   cancelEdit(): void {
