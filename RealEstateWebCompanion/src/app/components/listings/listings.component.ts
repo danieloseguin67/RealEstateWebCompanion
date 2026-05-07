@@ -215,7 +215,12 @@ export class ListingsComponent implements OnInit {
   }
 
   addRow(): void {
-    const newId = 'apt_' + String(this.rowData.length + 1).padStart(3, '0');
+    const maxNum = this.rowData.reduce((max, apt) => {
+      const match = apt.id?.match(/^apt_(\d+)$/);
+      const num = match ? parseInt(match[1], 10) : 0;
+      return num > max ? num : max;
+    }, 0);
+    const newId = 'apt_' + String(maxNum + 1).padStart(3, '0');
     const newRow: Apartment = {
       id: newId,
       title: '',
