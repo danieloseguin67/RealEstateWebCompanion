@@ -338,18 +338,30 @@
     }
   }
   
-  .file-upload-wrapper {
+  .drop-zone {
     display: flex;
     align-items: center;
     gap: 15px;
-    
+    padding: 20px;
+    border: 2px dashed #ced4da;
+    border-radius: 6px;
+    background-color: #f8f9fa;
+    transition: border-color 0.2s, background-color 0.2s;
+    cursor: default;
+
+    &.drag-over {
+      border-color: #0d6efd;
+      background-color: #e8f0fe;
+    }
+
     .file-upload-btn {
       cursor: pointer;
       display: inline-block;
       margin: 0;
+      flex-shrink: 0;
     }
-    
-    .file-info {
+
+    .drop-zone-hint {
       font-size: 13px;
       color: #6c757d;
       font-style: italic;

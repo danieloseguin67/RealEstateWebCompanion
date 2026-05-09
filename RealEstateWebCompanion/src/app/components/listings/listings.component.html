@@ -232,7 +232,12 @@
             
             <div class="form-group">
               <label>Or Upload from Computer:</label>
-              <div class="file-upload-wrapper">
+              <div 
+                class="drop-zone"
+                [class.drag-over]="isDragOver"
+                (dragover)="onDragOver($event)"
+                (dragleave)="onDragLeave($event)"
+                (drop)="onDrop($event)">
                 <label class="btn btn-primary file-upload-btn">
                   Browse Files...
                   <input 
@@ -242,7 +247,7 @@
                     (change)="onFileSelected($event)" 
                     style="display: none;">
                 </label>
-                <span class="file-info">Supports multiple image files (JPG, PNG, etc.)</span>
+                <span class="drop-zone-hint">or drag &amp; drop image files here</span>
               </div>
             </div>
           </div>

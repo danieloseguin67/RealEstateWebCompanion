@@ -34,6 +34,7 @@ export class ListingsComponent implements OnInit {
   selectedFiles: FileList | null = null;
   editingImageIndex: number | null = null;
   editingImageName = '';
+  isDragOver = false;
   
   // Check if current user is daniel.seguin
   get isDanielSeguin(): boolean {
@@ -342,25 +343,39 @@ export class ListingsComponent implements OnInit {
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
-      this.selectedFiles = input.files;
-      this.uploadSelectedImages();
+      this.uploadFiles(Array.from(input.files));
     }
   }
-  
-  uploadSelectedImages(): void {
-    if (!this.editingApartment || !this.selectedFiles) return;
-    
+
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver = true;
+  }
+
+  onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver = false;
+  }
+
+  onDrop(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver = false;
+    const files = event.dataTransfer?.files;
+    if (!files || files.length === 0) return;
+    this.uploadFiles(Array.from(files).filter(f => f.type.startsWith('image/')));
+  }
+
+  uploadFiles(files: File[]): void {
+    if (!this.editingApartment || files.length === 0) return;
     if (!this.editingApartment.images) {
       this.editingApartment.images = [];
     }
-    
-    // Simply add filenames to the images array
-    for (let i = 0; i < this.selectedFiles.length; i++) {
-      const file = this.selectedFiles[i];
+    for (const file of files) {
       this.editingApartment.images.push(file.name);
     }
-    
-    this.selectedFiles = null;
   }
   
   removeImage(index: number): void {

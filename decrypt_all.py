@@ -16,7 +16,7 @@ def decrypt(encrypted_text):
 passwords = [
     ('jane.doe', 'HwYRCh4dOC4oVwQLJQ=='),
     ('daniel.seguin', 'FgQLASAHRlFGRw=='),
-    ('jessica.larmour', 'MQAXXn0/ERdQ')
+    ('jessica.larmour', 'MQAXXn0/ERdQ')  # cev28Lev$
 ]
 
 print('\nAll user credentials:')
