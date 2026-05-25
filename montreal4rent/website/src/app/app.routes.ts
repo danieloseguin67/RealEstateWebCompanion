@@ -1,0 +1,43 @@
+import { Routes } from '@angular/router';
+import { HomeComponent } from './components/home/home.component';
+import { ApartmentsComponent } from './components/apartments/apartments.component';
+import { AmenitiesComponent } from './components/amenities/amenities.component';
+import { LifestyleComponent } from './components/lifestyle/lifestyle.component';
+import { StudentsComponent } from './components/students/students.component';
+import { FurnishedSuitesComponent } from './components/furnished-suites/furnished-suites.component';
+import { UnfurnishedSuitesComponent } from './components/unfurnished-suites/unfurnished-suites.component';
+import { CondoRentalsComponent } from './components/condo-rentals/condo-rentals.component';
+import { RoomsForRentComponent } from './components/rooms-for-rent/rooms-for-rent.component';
+import { GalleryComponent } from './components/gallery/gallery.component';
+import { ContactComponent } from './components/contact/contact.component';
+import { PropertyOwnersComponent } from './components/property-owners/property-owners.component';
+import { ApartmentDetailComponent } from './components/apartment-detail/apartment-detail.component';
+import { EmailLogsComponent } from './components/email-logs/email-logs.component';
+import { TestComponent } from './components/test/test.component';
+
+export const routes: Routes = [
+  { path: '', component: HomeComponent },
+  { path: 'accueil', component: HomeComponent },
+  { path: 'appartements', component: ApartmentsComponent },
+  { path: 'apartments', component: ApartmentsComponent },
+  { path: 'apartments/:id', component: ApartmentDetailComponent },
+  { path: 'appartement/:id', component: ApartmentDetailComponent },
+  { path: 'commodités', component: AmenitiesComponent },
+  { path: 'style-de-vie', component: LifestyleComponent },
+  { path: 'étudiants', component: StudentsComponent },
+  { path: 'students', component: StudentsComponent },
+  { path: 'suites-meublées', component: FurnishedSuitesComponent },
+  { path: 'furnished-suites', component: FurnishedSuitesComponent },
+  { path: 'suites-non-meublées', component: UnfurnishedSuitesComponent },
+  { path: 'unfurnished-suites', component: UnfurnishedSuitesComponent },
+  { path: 'condos-à-louer', component: CondoRentalsComponent },
+  { path: 'condo-rentals', component: CondoRentalsComponent },
+  { path: 'chambres-à-louer', component: RoomsForRentComponent },
+  { path: 'rooms-for-rent', component: RoomsForRentComponent },
+  { path: 'galerie', component: GalleryComponent },
+  { path: 'contact', component: ContactComponent },
+  { path: 'property-owners', component: PropertyOwnersComponent },
+  { path: 'email-logs', component: EmailLogsComponent },
+  { path: 'test', component: TestComponent },
+  { path: '**', redirectTo: '' }
+];

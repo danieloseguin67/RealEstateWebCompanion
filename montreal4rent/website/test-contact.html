@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Email Test - Montreal4Rent</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+        button { padding: 10px 20px; margin: 10px 0; cursor: pointer; }
+        #result { margin-top: 20px; padding: 15px; border: 1px solid #ddd; background: #f9f9f9; white-space: pre-wrap; }
+        .success { background: #d4edda !important; border-color: #c3e6cb !important; }
+        .error { background: #f8d7da !important; border-color: #f5c6cb !important; }
+    </style>
+</head>
+<body>
+    <h1>Montreal4Rent Email Test</h1>
+    
+    <h2>Step 1: Check if contact.php exists</h2>
+    <button onclick="checkEndpoint()">Test /contact.php Endpoint</button>
+    
+    <h2>Step 2: Try sending test email</h2>
+    <button onclick="sendTestEmail()">Send Test Email</button>
+    
+    <div id="result"></div>
+
+    <script>
+        function showResult(data, isError = false) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = JSON.stringify(data, null, 2);
+            resultDiv.className = isError ? 'error' : 'success';
+        }
+
+        async function checkEndpoint() {
+            try {
+                const response = await fetch('/contact.php', {
+                    method: 'OPTIONS',
+                });
+                
+                showResult({
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: {
+                        'Access-Control-Allow-Origin': response.headers.get('Access-Control-Allow-Origin'),
+                        'Content-Type': response.headers.get('Content-Type')
+                    },
+                    message: response.status === 200 ? 'Endpoint accessible!' : 'Endpoint exists but may have issues'
+                }, response.status !== 200);
+            } catch (err) {
+                showResult({
+                    error: 'Failed to reach endpoint',
+                    message: err.message,
+                    hint: 'Make sure contact.php is uploaded to public_html/'
+                }, true);
+            }
+        }
+
+        async function sendTestEmail() {
+            const testData = {
+                fromEmail: 'test@example.com',
+                to: 'info@montreal4rent.com',
+                subject: 'Test Email from montreal4rent.com',
+                body: '<p>This is a test email sent at ' + new Date().toISOString() + '</p>',
+                isBodyHtml: true,
+                formType: 'test',
+                senderName: 'Test User'
+            };
+
+            try {
+                const response = await fetch('/contact.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testData)
+                });
+
+                const data = await response.json();
+                
+                showResult({
+                    httpStatus: response.status,
+                    response: data,
+                    message: data.success ? 'Email sent successfully!' : 'Email failed'
+                }, !data.success);
+
+            } catch (err) {
+                showResult({
+                    error: 'Request failed',
+                    message: err.message,
+                    hint: 'Check browser console for more details'
+                }, true);
+            }
+        }
+
+        // Auto-run basic check on load
+        window.onload = function() {
+            console.log('Testing contact.php endpoint...');
+        };
+    </script>
+</body>
+</html>

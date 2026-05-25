@@ -1,0 +1,4 @@
+# Placeholder for montreal-skyline.jpg
+This file should be replaced with an actual Montreal skyline image
+Recommended size: 1920x1080px or larger
+Format: JPG

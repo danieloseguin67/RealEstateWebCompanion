@@ -27,67 +27,6 @@ dotnet run
 
 The API starts on `http://localhost:5234` by default (HTTP) or `https://localhost:7264` (HTTPS).
 
-## Running with Docker
-
-This repo includes a Dockerfile for the API and a `docker-compose.yml` that runs:
-
-- `api` (ASP.NET Core)
-- `db` (SQL Server 2022)
-
-### Prerequisites
-
-- Docker Desktop (Windows)
-
-### 1) Set the SQL Server password
-
-Create `webapi/.env` (you can copy from `webapi/.env.example`) and set `SA_PASSWORD`.
-
-### 2) Start the stack
-
-From the repo root:
-
-```bash
-cd webapi
-docker compose --env-file .env up --build
-```
-
-Tip: if you want the containers to come back automatically after a laptop reboot, the compose file uses `restart: unless-stopped` so Docker can auto-restart them once Docker Desktop is running.
-
-Optional (recommended on first run): initialize the database automatically via the one-shot `db-init` service:
-
-```bash
-cd webapi
-docker compose --profile init --env-file .env up --build
-```
-
-API will be available at:
-
-- `http://localhost:8081`
-- Swagger UI (Development): `http://localhost:8081/swagger`
-
-### 3) Initialize the database schema/data
-
-The API expects the schema from:
-
-```
-webapi/webcompanionapi/Scripts/create-database.sql
-```
-
-Run it against the SQL Server container using your preferred SQL client.
-
-If you used the `--profile init` command above, this step is already done.
-
-Notes:
-
-- The compose file exposes SQL Server on `localhost:14330`.
-- Login is `sa` and the password is your `SA_PASSWORD`.
-
-SQL Server connection note (Windows tools): in SSMS, use `localhost,14330` (comma), not `localhost:14330`.
-
-### HTTPS redirection in containers
-
-By default, HTTPS redirection is disabled when running inside a container (to support HTTP-only local Docker runs). You can re-enable it by setting `EnableHttpsRedirection=true` (e.g., via environment variable).
-
 ## Swagger/OpenAPI Documentation
 
 Interactive API documentation is available via Swagger UI when running in Development mode:

@@ -1,0 +1,252 @@
+{
+  "content": {
+    "fr": {
+      "navigation": {
+        "home": "Accueil",
+        "apartments": "Appartements",
+        "amenities": "Commodités",
+        "lifestyle": "Style de vie",
+        "students": "Étudiants",
+        "furnished": "Appartements meublées",
+        "unfurnished": "Appartements non meublées",
+        "gallery": "Galerie",
+        "contact": "Contact",
+        "bookTour": "Réserver une visite",
+        "language": "Langue"
+      },
+      "common": {
+        "viewDetails": "Voir les détails",
+        "bookNow": "Réserver maintenant",
+        "available": "Disponible",
+        "notAvailable": "Non disponible",
+        "bedroom": "chambre",
+        "bedrooms": "chambres",
+        "bathroom": "salle de bain",
+        "bathrooms": "salles de bain",
+        "sqft": "pi²",
+        "month": "mois",
+        "furnished": "Meublé",
+        "unfurnished": "Non meublé",
+        "loading": "Chargement...",
+        "error": "Erreur",
+        "search": "Rechercher",
+        "filter": "Filtrer",
+        "sort": "Trier",
+        "clear": "Effacer",
+        "close": "Fermer",
+        "back": "Retour"
+      },
+      "home": {
+        "hero": {
+          "title": "Appartements et condos",
+          "titleTop": "Appartements à louer à Montréal",
+          "titleBottom": "",
+          "subtitle": "Recherchez des appartements à louer à Montréal, incluant des logements meublés et non meublés prêts pour emménagement immédiat",
+          "cta": "Explorez nos appartements"
+        },
+        "search": {
+          "title": "Trouvez votre appartement idéal",
+          "area": "Quartier",
+          "allAreas": "Tous les quartiers",
+          "maxPrice": "Prix max",
+          "allPrices": "Tout prix",
+          "bedrooms": "Chambres",
+          "allBedrooms": "Tous",
+          "priceRange": "Gamme de prix",
+          "sortBy": "Trier par",
+          "priceAsc": "Prix croissant",
+          "priceDesc": "Prix décroissant",
+          "showFilters": "Afficher les filtres",
+          "hideFilters": "Masquer les filtres"
+        },
+        "featured": {
+          "title": "Appartements vedettes",
+          "subtitle": "Découvrez notre sélection d'appartements de luxe"
+        },
+        "aboutAgent": {
+          "title": "Montreal4Rent",
+          "subtitle": "Appartements à louer à Montréal | Meublés et non meublés",
+          "description": "Agent de location",
+          "phone": "438-508-1566",
+          "email": "info@montreal4rent.com",
+          "contactButton": "Contactez nous"
+        }
+      },
+      "footer": {
+        "contact": "Contact",
+        "phone": "Téléphone",
+        "email": "Courriel",
+        "areas": "Quartiers desservis",
+        "description": "Spécialiste en location d'appartements de luxe à Montréal. Trouvez votre nouveau chez-vous dès aujourd'hui.",
+        "rights": "Tous droits réservés"
+      },
+      "contact": {
+        "form": {
+          "header": "Envoyez-nous un message",
+          "subheader": "Remplissez le formulaire ci-dessous et nous vous répondrons rapidement.",
+          "moveInDate": "Date d'emménagement",
+          "moveInDateRequired": "La date d'emménagement est requise.",
+          "name": "Nom complet",
+          "nameRequired": "Le nom est requis.",
+          "nameMinLength": "Le nom doit contenir au moins 2 caractères.",
+          "email": "Email",
+          "emailRequired": "L'email est requis.",
+          "emailInvalid": "Veuillez entrer une adresse email valide.",
+          "phone": "Numéro de téléphone",
+          "phoneRequired": "Le numéro de téléphone est requis.",
+          "phoneInvalid": "Veuillez entrer un numéro de téléphone valide.",
+          "maxBudget": "Budget maximum (CAD)",
+          "maxBudgetRequired": "Le budget maximum est requis.",
+          "maxBudgetMin": "Le budget doit être supérieur à 0.",
+          "unitType": "Type d'unité",
+          "unitTypeRequired": "Le type d'unité est requis.",
+          "selectUnitType": "Sélectionner le type d'unité",
+          "studio": "Studio",
+          "1bedroom": "1 chambre",
+          "2bedrooms": "2 chambres",
+          "3bedrooms": "3 chambres",
+          "message": "Message",
+          "messageRequired": "Le message est requis.",
+          "sending": "Envoi...",
+          "submitRequest": "Soumettre la demande",
+          "successMessage": "Votre message a été envoyé avec succès! Nous vous répondrons bientôt.",
+          "errorMessage": "Une erreur est survenue lors de l'envoi. Veuillez réessayer."
+        },
+        "aboutAgent": {
+          "title": "À Propos de Montreal4Rent",
+          "subtitle": "Montreal4Rent se spécialise dans la location d'appartements de luxe à Montréal. Nous offrons des logements de qualité supérieure dans les meilleurs quartiers de la ville, parfaits pour les étudiants, les professionnels et les familles."
+        },
+        "aboutSection": {
+          "furnished": "Appartements entièrement meublés et non-meublés",
+          "student": "Logements adaptés aux étudiants",
+          "premium": "Emplacements premium",
+          "service": "Service client 24/7"
+        }
+      }
+    },
+    "en": {
+      "navigation": {
+        "home": "Home",
+        "apartments": "Apartments",
+        "amenities": "Amenities",
+        "lifestyle": "Lifestyle",
+        "students": "Students",
+        "furnished": "Furnished Suites",
+        "unfurnished": "Unfurnished Suites",
+        "gallery": "Gallery",
+        "contact": "Contact",
+        "bookTour": "Book a Tour",
+        "language": "Language"
+      },
+      "common": {
+        "viewDetails": "View Details",
+        "bookNow": "Book Now",
+        "available": "Available",
+        "notAvailable": "Not Available",
+        "bedroom": "bedroom",
+        "bedrooms": "bedrooms",
+        "bathroom": "bathroom",
+        "bathrooms": "bathrooms",
+        "sqft": "sqft",
+        "month": "month",
+        "furnished": "Furnished",
+        "unfurnished": "Unfurnished",
+        "loading": "Loading...",
+        "error": "Error",
+        "search": "Search",
+        "filter": "Filter",
+        "sort": "Sort",
+        "clear": "Clear",
+        "close": "Close",
+        "back": "Back"
+      },
+      "home": {
+        "hero": {
+          "title": "Apartments, Condos, and Rooms for rent in Montreal",
+          "titleTop": "Montreal Apartments for Rent",
+          "titleBottom": "",
+          "subtitle": "Search Montreal apartments for rent, including furnished and unfurnished units ready for immediate move-in.",
+          "cta": "Explore Our Apartments"
+        },
+        "search": {
+          "title": "Find Your Perfect Apartment",
+          "area": "Area",
+          "allAreas": "All Areas",
+          "maxPrice": "Max Price",
+          "allPrices": "All Prices",
+          "bedrooms": "Bedrooms",
+          "allBedrooms": "All",
+          "priceRange": "Price Range",
+          "sortBy": "Sort By",
+          "priceAsc": "Price: Low to High",
+          "priceDesc": "Price: High to Low",
+          "showFilters": "Show Filters",
+          "hideFilters": "Hide Filters"
+        },
+        "featured": {
+          "title": "Featured Apartments",
+          "subtitle": "Discover our selection of luxury apartments"
+        },
+        "aboutAgent": {
+          "title": "Montreal4Rent",
+          "subtitle": "Montreal Apartments for Rent | Furnished & Unfurnished",
+          "description": "Leasing Agent",
+          "phone": "438-508-1566",
+          "email": "info@montreal4rent.com",
+          "contactButton": "Contact Us"
+        }
+      },
+      "footer": {
+        "contact": "Contact",
+        "phone": "Phone",
+        "email": "Email",
+        "areas": "Served Areas",
+        "description": "Specialist in luxury apartment rentals in Montreal. Find your new home today.",
+        "rights": "All rights reserved"
+      },
+      "contact": {
+        "form": {
+          "header": "Send us a message",
+          "subheader": "Fill out the form below and we will get back to you quickly.",
+          "moveInDate": "Move-in Date",
+          "moveInDateRequired": "Move-in date is required.",
+          "name": "Full Name",
+          "nameRequired": "Name is required.",
+          "nameMinLength": "Name must be at least 2 characters long.",
+          "email": "Email",
+          "emailRequired": "Email is required.",
+          "emailInvalid": "Please enter a valid email address.",
+          "phone": "Phone Number",
+          "phoneRequired": "Phone number is required.",
+          "phoneInvalid": "Please enter a valid phone number.",
+          "maxBudget": "Max Budget (CAD)",
+          "maxBudgetRequired": "Max budget is required.",
+          "maxBudgetMin": "Budget must be greater than 0.",
+          "unitType": "Unit Type",
+          "unitTypeRequired": "Unit type is required.",
+          "selectUnitType": "Select Unit Type",
+          "studio": "Studio",
+          "1bedroom": "1 Bedroom",
+          "2bedrooms": "2 Bedrooms",
+          "3bedrooms": "3 Bedrooms",
+          "message": "Message",
+          "messageRequired": "Message is required.",
+          "sending": "Sending...",
+          "submitRequest": "Submit Request",
+          "successMessage": "Your message has been sent successfully! We'll get back to you soon.",
+          "errorMessage": "An error occurred while sending. Please try again."
+        },
+        "aboutAgent": {
+          "title": "About Montreal4Rent",
+          "subtitle": "Montreal4Rent specializes in luxury apartment rentals in Montreal. We offer premium housing in the best neighborhoods of the city, perfect for students, professionals, and families."
+        },
+        "aboutSection": {
+          "furnished": "Furnished and unfurnished apartments",
+          "student": "Student-friendly housing",
+          "premium": "Premium locations",
+          "service": "24/7 customer service"
+        }
+      }
+    }
+  }
+}

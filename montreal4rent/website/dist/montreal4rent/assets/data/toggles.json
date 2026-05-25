@@ -1,0 +1,26 @@
+[
+    {
+        "toggle_name": "Pet Friendly",
+        "toggle_image": "🐾"
+    },
+    {
+        "toggle_name": "Parking Available",
+        "toggle_image": "🚗"
+    },
+    {
+        "toggle_name": "Elevator",
+        "toggle_image": "🏢"
+    },
+    {
+        "toggle_name": "Washer/Dryer in Unit",
+        "toggle_image": "🧺"
+    },
+    {
+        "toggle_name": "Gym",
+        "toggle_image": "💪"
+    },
+    {
+        "toggle_name": "Balcony",
+        "toggle_image": "🏙️"
+    }
+]

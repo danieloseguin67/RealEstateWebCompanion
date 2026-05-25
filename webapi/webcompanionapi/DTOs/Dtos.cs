@@ -46,17 +46,11 @@ public class ApartmentDto
     [JsonPropertyName("descriptionEn")]
     public string DescriptionEn { get; set; } = string.Empty;
 
-    [JsonPropertyName("features")]
-    public List<string> Features { get; set; } = [];
-
-    [JsonPropertyName("featuresEn")]
-    public List<string> FeaturesEn { get; set; } = [];
+    [JsonPropertyName("feature_ids")]
+    public List<int> FeatureIds { get; set; } = [];
 
     [JsonPropertyName("images")]
     public List<string> Images { get; set; } = [];
-
-    [JsonPropertyName("toggle_names")]
-    public List<string> ToggleNames { get; set; } = [];
 }
 
 public class AppVersionDto
@@ -142,11 +136,17 @@ public class SeoPageDto
 
 public class FeatureDto
 {
-    [JsonPropertyName("toggle_name")]
-    public string ToggleName { get; set; } = string.Empty;
+    [JsonPropertyName("id")]
+    public int Id { get; set; }
 
     [JsonPropertyName("toggle_image")]
     public string ToggleImage { get; set; } = string.Empty;
+
+    [JsonPropertyName("french_name")]
+    public string FrenchName { get; set; } = string.Empty;
+
+    [JsonPropertyName("english_name")]
+    public string EnglishName { get; set; } = string.Empty;
 }
 
 public class UnitTypeDto
@@ -179,29 +179,3 @@ public class AreaDto
     public string Link { get; set; } = string.Empty;
 }
 
-public class ApartmentFeatureDto
-{
-    [JsonPropertyName("id")]
-    public int Id { get; set; }
-
-    [JsonPropertyName("apartmentId")]
-    public string ApartmentId { get; set; } = string.Empty;
-
-    [JsonPropertyName("name")]
-    public string Name { get; set; } = string.Empty;
-
-    [JsonPropertyName("nameEn")]
-    public string NameEn { get; set; } = string.Empty;
-}
-
-public class ApartmentImageDto
-{
-    [JsonPropertyName("id")]
-    public int Id { get; set; }
-
-    [JsonPropertyName("apartmentId")]
-    public string ApartmentId { get; set; } = string.Empty;
-
-    [JsonPropertyName("fileName")]
-    public string FileName { get; set; } = string.Empty;
-}

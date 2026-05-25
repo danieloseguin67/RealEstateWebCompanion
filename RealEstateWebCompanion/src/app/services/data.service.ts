@@ -25,6 +25,8 @@ export class DataService {
     private storageService: StorageService,
     private apiService: ApiService
   ) {
+    // Evict the stale 'toggles' cache so feature labels always refresh from API/JSON.
+    this.storageService.removeItem('toggles');
     this.loadAllData();
   }
 
@@ -72,15 +74,12 @@ export class DataService {
   }
 
   loadToggles(): void {
-    const stored = this.storageService.getItem<Toggle[]>('toggles');
-    if (stored) {
-      this.togglesSubject.next(stored);
-    } else {
-      this.apiService.getFeatures().subscribe(data => {
-        this.togglesSubject.next(data);
-        this.storageService.setItem('toggles', data);
-      });
-    }
+    // Always fetch fresh from API to ensure english_name and toggle_image are current.
+    // Falls back to assets/data/toggles.json if the API is unreachable.
+    this.apiService.getFeatures().subscribe(data => {
+      this.togglesSubject.next(data);
+      this.storageService.setItem('toggles', data);
+    });
   }
 
   updateApartments(apartments: Apartment[]): void {

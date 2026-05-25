@@ -41,19 +41,11 @@ public class Apartment
     [Column(TypeName = "nvarchar(max)")]
     public string DescriptionEn { get; set; } = string.Empty;
 
-    /// <summary>JSON-serialized string array of French features</summary>
-    [Column(TypeName = "nvarchar(max)")]
-    public string FeaturesJson { get; set; } = "[]";
-
-    /// <summary>JSON-serialized string array of English features</summary>
-    [Column(TypeName = "nvarchar(max)")]
-    public string FeaturesEnJson { get; set; } = "[]";
-
     /// <summary>JSON-serialized string array of image filenames</summary>
     [Column(TypeName = "nvarchar(max)")]
     public string ImagesJson { get; set; } = "[]";
 
-    /// <summary>JSON-serialized string array of toggle names</summary>
+    /// <summary>JSON-serialized string array of feature names</summary>
     [Column(TypeName = "nvarchar(max)")]
-    public string ToggleNamesJson { get; set; } = "[]";
+    public string FeaturesJson { get; set; } = "[]";
 }

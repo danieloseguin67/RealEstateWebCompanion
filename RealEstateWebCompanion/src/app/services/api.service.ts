@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, catchError, of } from 'rxjs';
+import { Observable, catchError, map, of } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { Apartment, UnitType, Toggle, SeoPage, Area, ApartmentFeature, ApartmentImage } from '../models/data.models';
+import { Apartment, UnitType, Toggle, SeoPage, Area, ApartmentImage } from '../models/data.models';
 
 export interface AppVersion {
   version: string;
@@ -46,8 +46,20 @@ export class ApiService {
   }
 
   getFeatures(): Observable<Toggle[]> {
-    return this.http.get<Toggle[]>(`${this.baseUrl}/features`).pipe(
-      catchError(() => this.http.get<Toggle[]>('assets/data/toggles.json'))
+    // Normalize the response to handle both snake_case (new API with [JsonPropertyName])
+    // and camelCase (older builds without explicit naming attributes).
+    const normalize = (features: any[]): Toggle[] =>
+      features.map(f => ({
+        id:           f.id           ?? f.Id           ?? 0,
+        toggle_name:  f.toggle_name  ?? f.toggleName   ?? f.ToggleName  ?? '',
+        french_name:  f.french_name  ?? f.frenchName   ?? f.FrenchName  ?? '',
+        english_name: f.english_name ?? f.englishName  ?? f.EnglishName ?? '',
+        toggle_image: f.toggle_image ?? f.toggleImage  ?? f.ToggleImage ?? '',
+      }));
+
+    return this.http.get<any[]>(`${this.baseUrl}/features`).pipe(
+      map(normalize),
+      catchError(() => this.http.get<any[]>('assets/data/toggles.json').pipe(map(normalize)))
     );
   }
 
@@ -91,6 +103,18 @@ export class ApiService {
     return this.http.delete<void>(`${this.baseUrl}/areas/${areaId}`);
   }
 
+  getFeatureById(id: number): Observable<Toggle> {
+    return this.http.get<any>(`${this.baseUrl}/features/${id}`).pipe(
+      map(f => ({
+        id:           f.id           ?? 0,
+        toggle_name:  f.toggle_name  ?? f.toggleName  ?? '',
+        french_name:  f.french_name  ?? f.frenchName  ?? '',
+        english_name: f.english_name ?? f.englishName ?? '',
+        toggle_image: f.toggle_image ?? f.toggleImage ?? '',
+      }))
+    );
+  }
+
   getApartmentById(apartmentId: string): Observable<Apartment> {
     return this.http.get<Apartment>(`${this.baseUrl}/apartments/${apartmentId}`);
   }
@@ -103,28 +127,19 @@ export class ApiService {
     return this.http.put<void>(`${this.baseUrl}/apartments/${id}`, apartment);
   }
 
-  getApartmentFeatures(apartmentId: string): Observable<ApartmentFeature[]> {
-    return this.http.get<ApartmentFeature[]>(`${this.baseUrl}/ApartmentFeatures/apartment/${apartmentId}`);
-  }
-
-  createApartmentFeature(feature: Partial<ApartmentFeature>): Observable<ApartmentFeature> {
-    return this.http.post<ApartmentFeature>(`${this.baseUrl}/ApartmentFeatures`, feature);
-  }
-
-  updateApartmentFeature(featureId: number, feature: Partial<ApartmentFeature>): Observable<void> {
-    return this.http.put<void>(`${this.baseUrl}/ApartmentFeatures/${featureId}`, feature);
-  }
-
-  deleteApartmentFeature(featureId: number): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/ApartmentFeatures/${featureId}`);
-  }
-
   getApartmentImages(apartmentId: string): Observable<ApartmentImage[]> {
     return this.http.get<ApartmentImage[]>(`${this.baseUrl}/ApartmentImages/apartment/${apartmentId}`);
   }
 
   createApartmentImage(image: Partial<ApartmentImage>): Observable<ApartmentImage> {
     return this.http.post<ApartmentImage>(`${this.baseUrl}/ApartmentImages`, image);
+  }
+
+  uploadApartmentImageFiles(apartmentId: string, files: FileList | File[]): Observable<ApartmentImage[]> {
+    const formData = new FormData();
+    const fileArray = files instanceof FileList ? Array.from(files) : files;
+    fileArray.forEach(f => formData.append('files', f, f.name));
+    return this.http.post<ApartmentImage[]>(`${this.baseUrl}/ApartmentImages/upload/${apartmentId}`, formData);
   }
 
   updateApartmentImage(imageId: number, image: Partial<ApartmentImage>): Observable<void> {

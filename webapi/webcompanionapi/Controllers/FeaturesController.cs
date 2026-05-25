@@ -47,8 +47,9 @@ public class FeaturesController : ControllerBase
         var entity = await _db.Features.FindAsync(id);
         if (entity == null) return NotFound();
 
-        entity.ToggleName = dto.ToggleName;
         entity.ToggleImage = dto.ToggleImage;
+        entity.FrenchName = dto.FrenchName;
+        entity.EnglishName = dto.EnglishName;
         await _db.SaveChangesAsync();
         return NoContent();
     }
@@ -65,13 +66,16 @@ public class FeaturesController : ControllerBase
 
     private static FeatureDto MapToDto(Feature f) => new()
     {
-        ToggleName = f.ToggleName,
+        Id = f.Id,
         ToggleImage = f.ToggleImage,
+        FrenchName = f.FrenchName,
+        EnglishName = f.EnglishName,
     };
 
     private static Feature MapToEntity(FeatureDto dto) => new()
     {
-        ToggleName = dto.ToggleName,
         ToggleImage = dto.ToggleImage,
+        FrenchName = dto.FrenchName,
+        EnglishName = dto.EnglishName,
     };
 }

@@ -1,0 +1,337 @@
+[
+  {
+    "id": "apt_ca_001",
+    "title": "742 Market St, San Francisco (SOMA)",
+    "titleEn": "742 Market St, San Francisco (SOMA)",
+    "unit_type_name": "Studio",
+    "bathrooms": 1.0,
+    "squareFootage": 550,
+    "price": 2800.0,
+    "area": "soma",
+    "furnished": false,
+    "roomtorent": false,
+    "condorentals": false,
+    "available": true,
+    "description": "Modern studio in the heart of SOMA with city views",
+    "descriptionEn": "Modern studio in the heart of SOMA with city views",
+    "features": [
+      "Parking",
+      "Gym",
+      "Rooftop Deck"
+    ],
+    "featuresEn": [
+      "Parking",
+      "Gym",
+      "Rooftop Deck"
+    ],
+    "images": [
+      "apt_ca_001_1.jpg",
+      "apt_ca_001_2.jpg"
+    ],
+    "toggle_names": []
+  },
+  {
+    "id": "apt_ca_002",
+    "title": "1523 Ocean Ave, Santa Monica (Beachfront)",
+    "titleEn": "1523 Ocean Ave, Santa Monica (Beachfront)",
+    "unit_type_name": "2 Bedroom",
+    "bathrooms": 2.0,
+    "squareFootage": 1200,
+    "price": 4500.0,
+    "area": "santa-monica",
+    "furnished": false,
+    "roomtorent": false,
+    "condorentals": true,
+    "available": true,
+    "description": "Stunning beachfront condo with ocean views and modern amenities",
+    "descriptionEn": "Stunning beachfront condo with ocean views and modern amenities",
+    "features": [
+      "Parking",
+      "Balcony",
+      "Ocean View",
+      "Pool"
+    ],
+    "featuresEn": [
+      "Parking",
+      "Balcony",
+      "Ocean View",
+      "Pool"
+    ],
+    "images": [
+      "apt_ca_002_1.jpg",
+      "apt_ca_002_2.jpg",
+      "apt_ca_002_3.jpg"
+    ],
+    "toggle_names": []
+  },
+  {
+    "id": "apt_ca_003",
+    "title": "890 University Ave, Palo Alto (Downtown)",
+    "titleEn": "890 University Ave, Palo Alto (Downtown)",
+    "unit_type_name": "1 Bedroom",
+    "bathrooms": 1.0,
+    "squareFootage": 750,
+    "price": 3200.0,
+    "area": "palo-alto",
+    "furnished": true,
+    "roomtorent": false,
+    "condorentals": false,
+    "available": true,
+    "description": "Fully furnished apartment near Stanford University",
+    "descriptionEn": "Fully furnished apartment near Stanford University",
+    "features": [
+      "Furnished",
+      "Internet included",
+      "Laundry",
+      "Parking"
+    ],
+    "featuresEn": [
+      "Furnished",
+      "Internet included",
+      "Laundry",
+      "Parking"
+    ],
+    "images": [
+      "apt_ca_003_1.jpg",
+      "apt_ca_003_2.jpg"
+    ],
+    "toggle_names": []
+  },
+  {
+    "id": "apt_ca_004",
+    "title": "2456 Broadway, Oakland (Uptown)",
+    "titleEn": "2456 Broadway, Oakland (Uptown)",
+    "unit_type_name": "3 Bedroom",
+    "bathrooms": 2.5,
+    "squareFootage": 1400,
+    "price": 3600.0,
+    "area": "oakland-uptown",
+    "furnished": false,
+    "roomtorent": false,
+    "condorentals": false,
+    "available": true,
+    "description": "Spacious family apartment in vibrant Uptown Oakland",
+    "descriptionEn": "Spacious family apartment in vibrant Uptown Oakland",
+    "features": [
+      "Parking",
+      "Pet Friendly",
+      "Laundry",
+      "Gym",
+      "Balcony"
+    ],
+    "featuresEn": [
+      "Parking",
+      "Pet Friendly",
+      "Laundry",
+      "Gym",
+      "Balcony"
+    ],
+    "images": [
+      "apt_ca_004_1.jpg",
+      "apt_ca_004_2.jpg",
+      "apt_ca_004_3.jpg"
+    ],
+    "toggle_names": []
+  },
+  {
+    "id": "apt_ca_005",
+    "title": "678 5th Ave, San Diego (Gaslamp Quarter)",
+    "titleEn": "678 5th Ave, San Diego (Gaslamp Quarter)",
+    "unit_type_name": "2 Bedroom",
+    "bathrooms": 2.0,
+    "squareFootage": 1050,
+    "price": 3400.0,
+    "area": "gaslamp",
+    "furnished": false,
+    "roomtorent": false,
+    "condorentals": true,
+    "available": true,
+    "description": "Luxury condo in downtown San Diego's entertainment district",
+    "descriptionEn": "Luxury condo in downtown San Diego's entertainment district",
+    "features": [
+      "Parking",
+      "Gym",
+      "Pool",
+      "Concierge"
+    ],
+    "featuresEn": [
+      "Parking",
+      "Gym",
+      "Pool",
+      "Concierge"
+    ],
+    "images": [
+      "apt_ca_005_1.jpg",
+      "apt_ca_005_2.jpg"
+    ],
+    "toggle_names": []
+  },
+  {
+    "id": "apt_ca_006",
+    "title": "3421 Sunset Blvd, Los Angeles (Silver Lake)",
+    "titleEn": "3421 Sunset Blvd, Los Angeles (Silver Lake)",
+    "unit_type_name": "1 Bedroom",
+    "bathrooms": 1.0,
+    "squareFootage": 800,
+    "price": 2900.0,
+    "area": "silver-lake",
+    "furnished": false,
+    "roomtorent": true,
+    "condorentals": false,
+    "available": true,
+    "description": "Trendy apartment in hip Silver Lake neighborhood",
+    "descriptionEn": "Trendy apartment in hip Silver Lake neighborhood",
+    "features": [
+      "Parking",
+      "Balcony",
+      "Pet Friendly",
+      "Hardwood Floors"
+    ],
+    "featuresEn": [
+      "Parking",
+      "Balcony",
+      "Pet Friendly",
+      "Hardwood Floors"
+    ],
+    "images": [
+      "apt_ca_006_1.jpg",
+      "apt_ca_006_2.jpg",
+      "apt_ca_006_3.jpg"
+    ],
+    "toggle_names": []
+  },
+  {
+    "id": "apt_ca_007",
+    "title": "1892 Capitol Ave, Sacramento (Midtown)",
+    "titleEn": "1892 Capitol Ave, Sacramento (Midtown)",
+    "unit_type_name": "2 Bedroom",
+    "bathrooms": 1.5,
+    "squareFootage": 950,
+    "price": 2200.0,
+    "area": "midtown-sacramento",
+    "furnished": false,
+    "roomtorent": false,
+    "condorentals": false,
+    "available": true,
+    "description": "Affordable apartment in walkable Midtown Sacramento",
+    "descriptionEn": "Affordable apartment in walkable Midtown Sacramento",
+    "features": [
+      "Laundry",
+      "Parking",
+      "Air Conditioning"
+    ],
+    "featuresEn": [
+      "Laundry",
+      "Parking",
+      "Air Conditioning"
+    ],
+    "images": [
+      "apt_ca_007_1.jpg",
+      "apt_ca_007_2.jpg"
+    ],
+    "toggle_names": []
+  },
+  {
+    "id": "apt_ca_008",
+    "title": "5673 La Jolla Blvd, San Diego (La Jolla)",
+    "titleEn": "5673 La Jolla Blvd, San Diego (La Jolla)",
+    "unit_type_name": "3 Bedroom",
+    "bathrooms": 3.0,
+    "squareFootage": 1800,
+    "price": 5500.0,
+    "area": "la-jolla",
+    "furnished": false,
+    "roomtorent": false,
+    "condorentals": true,
+    "available": false,
+    "description": "Upscale coastal living in prestigious La Jolla",
+    "descriptionEn": "Upscale coastal living in prestigious La Jolla",
+    "features": [
+      "Ocean View",
+      "Parking",
+      "Gym",
+      "Pool",
+      "Pet Friendly"
+    ],
+    "featuresEn": [
+      "Ocean View",
+      "Parking",
+      "Gym",
+      "Pool",
+      "Pet Friendly"
+    ],
+    "images": [
+      "apt_ca_008_1.jpg",
+      "apt_ca_008_2.jpg",
+      "apt_ca_008_3.jpg",
+      "apt_ca_008_4.jpg"
+    ],
+    "toggle_names": []
+  },
+  {
+    "id": "apt_ca_009",
+    "title": "234 Bush St, San Francisco (Financial District)",
+    "titleEn": "234 Bush St, San Francisco (Financial District)",
+    "unit_type_name": "Studio",
+    "bathrooms": 1.0,
+    "squareFootage": 500,
+    "price": 2600.0,
+    "area": "financial-district",
+    "furnished": true,
+    "roomtorent": false,
+    "condorentals": false,
+    "available": true,
+    "description": "Compact furnished studio perfect for professionals",
+    "descriptionEn": "Compact furnished studio perfect for professionals",
+    "features": [
+      "Furnished",
+      "Internet included",
+      "Gym"
+    ],
+    "featuresEn": [
+      "Furnished",
+      "Internet included",
+      "Gym"
+    ],
+    "images": [
+      "apt_ca_009_1.jpg"
+    ],
+    "toggle_names": []
+  },
+  {
+    "id": "apt_ca_010",
+    "title": "7821 Melrose Ave, Los Angeles (West Hollywood)",
+    "titleEn": "7821 Melrose Ave, Los Angeles (West Hollywood)",
+    "unit_type_name": "2 Bedroom",
+    "bathrooms": 2.0,
+    "squareFootage": 1100,
+    "price": 3800.0,
+    "area": "west-hollywood",
+    "furnished": false,
+    "roomtorent": false,
+    "condorentals": false,
+    "available": true,
+    "description": "Stylish apartment on trendy Melrose Avenue",
+    "descriptionEn": "Stylish apartment on trendy Melrose Avenue",
+    "features": [
+      "Parking",
+      "Balcony",
+      "Laundry",
+      "Pool",
+      "Hardwood Floors"
+    ],
+    "featuresEn": [
+      "Parking",
+      "Balcony",
+      "Laundry",
+      "Pool",
+      "Hardwood Floors"
+    ],
+    "images": [
+      "apt_ca_010_1.jpg",
+      "apt_ca_010_2.jpg",
+      "apt_ca_010_3.jpg"
+    ],
+    "toggle_names": []
+  }
+]

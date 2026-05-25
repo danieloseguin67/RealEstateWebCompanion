@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Direct Email Test</title>
+    <style>
+        body { font-family: Arial; padding: 20px; max-width: 900px; margin: 0 auto; }
+        button { padding: 12px 24px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; margin: 10px 5px; font-size: 14px; }
+        button:hover { background: #0056b3; }
+        #result { margin-top: 20px; padding: 15px; border-radius: 4px; white-space: pre-wrap; font-family: monospace; font-size: 12px; border: 1px solid #ddd; }
+        .error { background: #f8d7da; color: #721c24; border-color: #f5c6cb; }
+        .success { background: #d4edda; color: #155724; border-color: #c3e6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border-color: #bee5eb; }
+        h1 { color: #333; }
+        .code { background: #f5f5f5; padding: 10px; border-radius: 4px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Direct Email Send Test</h1>
+    <p>This will POST directly to php/contact.php with the same data the form sends.</p>
+    
+    <button onclick="sendTestEmail()">Send Test Email</button>
+    
+    <div id="result"></div>
+
+    <script>
+        async function sendTestEmail() {
+            const result = document.getElementById('result');
+            result.textContent = 'Sending email via php/contact.php...\nPlease wait...';
+            result.className = 'info';
+
+            const emailData = {
+                fromEmail: 'danieloseguin67@gmail.com',
+                to: 'info@montreal4rent.com',
+                subject: 'Test from Direct Email Test Tool',
+                body: `
+                    <div style="font-family: Arial, sans-serif;">
+                        <h2>Test Email</h2>
+                        <p><strong>Sent:</strong> ${new Date().toISOString()}</p>
+                        <p><strong>From:</strong> Direct Email Test Tool</p>
+                        <p>This email confirms SMTP is working correctly!</p>
+                    </div>
+                `,
+                isBodyHtml: true,
+                formType: 'direct-test',
+                senderName: 'Daniel Seguin'
+            };
+
+            console.log('Sending request with data:', emailData);
+
+            try {
+                const response = await fetch('php/contact.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(emailData)
+                });
+
+                console.log('Response status:', response.status);
+                console.log('Response headers:', [...response.headers.entries()]);
+
+                const contentType = response.headers.get('content-type');
+                let responseData;
+                
+                if (contentType && contentType.includes('application/json')) {
+                    responseData = await response.json();
+                } else {
+                    // Not JSON, get raw text
+                    const text = await response.text();
+                    console.log('Raw response:', text);
+                    responseData = { 
+                        error: 'Non-JSON response received',
+                        rawResponse: text.substring(0, 500) // First 500 chars
+                    };
+                }
+
+                console.log('Response data:', responseData);
+
+                const output = {
+                    status: response.status,
+                    statusText: response.statusText,
+                    success: responseData.success,
+                    message: responseData.message,
+                    debug: responseData.debug,
+                    rawResponse: responseData.rawResponse
+                };
+
+                result.className = responseData.success ? 'success' : 'error';
+                result.textContent = 'RESPONSE:\n\n' + JSON.stringify(output, null, 2);
+
+                if (responseData.success) {
+                    result.textContent += '\n\n✅ SUCCESS! Check info@montreal4rent.com inbox for the test email.';
+                } else {
+                    result.textContent += '\n\n❌ FAILED. See debug info above.';
+                }
+
+            } catch (err) {
+                console.error('Fetch error:', err);
+                result.className = 'error';
+                result.textContent = 'FETCH ERROR:\n\n' + err.message + '\n\n' + err.stack;
+            }
+        }
+
+        // Show the test data
+        window.onload = function() {
+            console.log('Direct Email Test Tool loaded');
+            console.log('Target URL: php/contact.php');
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="600" fill="#f0f0f0"/>
+  <rect x="10" y="10" width="780" height="580" fill="none" stroke="#cccccc" stroke-width="2" stroke-dasharray="10,5"/>
+  
+  <!-- Image icon -->
+  <g transform="translate(400, 250)">
+    <rect x="-60" y="-40" width="120" height="80" fill="none" stroke="#999999" stroke-width="3" rx="5"/>
+    <circle cx="-30" cy="-15" r="8" fill="#999999"/>
+    <polyline points="-50,20 -20,-5 10,10 50,20" fill="none" stroke="#999999" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  
+  <!-- Text -->
+  <text x="400" y="360" font-family="Arial, sans-serif" font-size="24" fill="#666666" text-anchor="middle">Image Not Available</text>
+  <text x="400" y="395" font-family="Arial, sans-serif" font-size="18" fill="#999999" text-anchor="middle">Please check back later</text>
+</svg>

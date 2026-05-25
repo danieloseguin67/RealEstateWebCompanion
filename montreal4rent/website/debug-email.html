@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Email Debug - Montreal4Rent</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 900px; 
+            margin: 20px auto; 
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-box {
+            background: white;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        button { 
+            padding: 12px 24px; 
+            margin: 10px 5px; 
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        button:hover { background: #0056b3; }
+        #result { 
+            margin-top: 20px; 
+            padding: 15px; 
+            border-radius: 4px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .success { background: #d4edda !important; border-color: #c3e6cb !important; color: #155724; }
+        .error { background: #f8d7da !important; border-color: #f5c6cb !important; color: #721c24; }
+        .info { background: #d1ecf1 !important; border-color: #bee5eb !important; color: #0c5460; }
+        h1 { color: #333; }
+        h2 { color: #555; font-size: 18px; margin-top: 20px; }
+        .url-display { 
+            background: #e9ecef; 
+            padding: 10px; 
+            border-radius: 4px; 
+            margin: 10px 0;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Montreal4Rent Email System Debug</h1>
+    
+    <div class="test-box">
+        <h2>Current URL Information</h2>
+        <div class="url-display">
+            <div><strong>Current URL:</strong> <span id="currentUrl"></span></div>
+            <div><strong>Base URL:</strong> <span id="baseUrl"></span></div>
+            <div><strong>Test contact.php at:</strong> <span id="contactPhpUrl"></span></div>
+        </div>
+    </div>
+
+    <div class="test-box">
+        <h2>Test 1: Check contact.php Accessibility</h2>
+        <p>This verifies if the contact.php file exists and responds</p>
+        <button onclick="testEndpointExists()">Test Endpoint</button>
+    </div>
+
+    <div class="test-box">
+        <h2>Test 2: Check SMTP Configuration</h2>
+        <p>Verifies if config-smtp.php is readable (won't show password)</p>
+        <button onclick="checkSmtpConfig()">Check SMTP Config</button>
+    </div>
+
+    <div class="test-box">
+        <h2>Test 3: Send Test Email</h2>
+        <p>Attempts to send an actual test email</p>
+        <button onclick="sendTestEmail()">Send Test Email</button>
+    </div>
+
+    <div class="test-box">
+        <h2>Test 4: Check CORS Headers</h2>
+        <p>Verify Cross-Origin headers are set correctly</p>
+        <button onclick="checkCORS()">Check CORS</button>
+    </div>
+    
+    <div id="result"></div>
+
+    <script>
+        // Display current URL info
+        document.getElementById('currentUrl').textContent = window.location.href;
+        document.getElementById('baseUrl').textContent = window.location.origin;
+        const contactPhpPath = window.location.pathname.includes('/test/') 
+            ? window.location.origin + '/contact.php'  // PHP should be in root
+            : window.location.origin + '/contact.php';
+        document.getElementById('contactPhpUrl').textContent = contactPhpPath;
+
+        function showResult(title, data, type = 'info') {
+            const resultDiv = document.getElementById('result');
+            const timestamp = new Date().toLocaleTimeString();
+            resultDiv.innerHTML = `<strong>[${timestamp}] ${title}</strong>\n\n` + JSON.stringify(data, null, 2);
+            resultDiv.className = type;
+        }
+
+        async function testEndpointExists() {
+            showResult('Testing...', { status: 'Checking if contact.php exists...' }, 'info');
+            
+            try {
+                const response = await fetch('/contact.php', {
+                    method: 'OPTIONS',
+                });
+                
+                const headers = {};
+                response.headers.forEach((value, key) => {
+                    headers[key] = value;
+                });
+
+                showResult('Endpoint Test Result', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    ok: response.ok,
+                    headers: headers,
+                    conclusion: response.ok 
+                        ? '✅ contact.php is accessible!' 
+                        : '⚠️ contact.php responded but with an error status'
+                }, response.ok ? 'success' : 'error');
+
+            } catch (err) {
+                showResult('Endpoint Test Failed', {
+                    error: err.message,
+                    hint: 'contact.php may not be uploaded to public_html/',
+                    solution: 'Upload php/contact.php to your server\'s public_html/ folder'
+                }, 'error');
+            }
+        }
+
+        async function checkSmtpConfig() {
+            showResult('Checking SMTP Config...', { status: 'Testing...' }, 'info');
+            
+            try {
+                // Try to access config file (should fail if not accessible, which is good for security)
+                const response = await fetch('/php/config-smtp.php');
+                
+                if (response.ok) {
+                    showResult('SMTP Config Check', {
+                        warning: '⚠️ config-smtp.php is publicly accessible!',
+                        status: 'This is a security risk - the file should not be directly accessible',
+                        solution: 'Make sure .htaccess or server config prevents access to .php config files'
+                    }, 'error');
+                } else {
+                    showResult('SMTP Config Check', {
+                        status: '✅ Good - config file is not publicly accessible',
+                        note: 'contact.php can still use it internally'
+                    }, 'success');
+                }
+            } catch (err) {
+                showResult('SMTP Config Check', {
+                    status: '✅ Config file appears protected',
+                    note: err.message
+                }, 'success');
+            }
+        }
+
+        async function sendTestEmail() {
+            showResult('Sending Test Email...', { status: 'Please wait...' }, 'info');
+            
+            const testData = {
+                fromEmail: 'danieloseguin67@gmail.com',
+                to: 'info@montreal4rent.com',
+                subject: 'Montreal4Rent - Debug Test Email',
+                body: `
+                    <div style="font-family: Arial, sans-serif; padding: 20px;">
+                        <h2>Test Email from Email Debug Tool</h2>
+                        <p><strong>Timestamp:</strong> ${new Date().toISOString()}</p>
+                        <p><strong>Test URL:</strong> ${window.location.href}</p>
+                        <p><strong>Browser:</strong> ${navigator.userAgent}</p>
+                        <p>If you receive this email, the SMTP configuration is working correctly!</p>
+                    </div>
+                `,
+                isBodyHtml: true,
+                formType: 'debug-test',
+                senderName: 'Debug Tool'
+            };
+
+            try {
+                const response = await fetch('/contact.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(testData)
+                });
+
+                const contentType = response.headers.get('content-type');
+                let data;
+                
+                if (contentType && contentType.includes('application/json')) {
+                    data = await response.json();
+                } else {
+                    const text = await response.text();
+                    data = { rawResponse: text, note: 'Response was not JSON' };
+                }
+                
+                showResult('Email Send Result', {
+                    httpStatus: response.status,
+                    httpOk: response.ok,
+                    response: data,
+                    conclusion: data.success 
+                        ? '✅ Email sent successfully! Check info@montreal4rent.com inbox' 
+                        : '❌ Email send failed - see response details above',
+                    debugInfo: data.debug || 'No debug info available'
+                }, data.success ? 'success' : 'error');
+
+            } catch (err) {
+                showResult('Email Send Failed', {
+                    error: err.message,
+                    stack: err.stack,
+                    possibleCauses: [
+                        'contact.php not uploaded',
+                        'Wrong SMTP credentials',
+                        'CORS headers not set',
+                        'PHP errors in contact.php',
+                        'Network connectivity issue'
+                    ]
+                }, 'error');
+            }
+        }
+
+        async function checkCORS() {
+            showResult('Checking CORS...', { status: 'Testing...' }, 'info');
+            
+            try {
+                const response = await fetch('/contact.php', {
+                    method: 'OPTIONS',
+                    headers: {
+                        'Origin': window.location.origin,
+                        'Access-Control-Request-Method': 'POST',
+                        'Access-Control-Request-Headers': 'Content-Type'
+                    }
+                });
+
+                const corsHeaders = {
+                    'Access-Control-Allow-Origin': response.headers.get('Access-Control-Allow-Origin'),
+                    'Access-Control-Allow-Methods': response.headers.get('Access-Control-Allow-Methods'),
+                    'Access-Control-Allow-Headers': response.headers.get('Access-Control-Allow-Headers')
+                };
+
+                const hasCORS = corsHeaders['Access-Control-Allow-Origin'] !== null;
+
+                showResult('CORS Check Result', {
+                    status: response.status,
+                    corsHeaders: corsHeaders,
+                    conclusion: hasCORS 
+                        ? '✅ CORS headers are configured correctly' 
+                        : '❌ CORS headers missing - this will cause request failures',
+                    note: hasCORS 
+                        ? 'The Angular app should be able to call contact.php' 
+                        : 'contact.php needs CORS headers for cross-origin requests'
+                }, hasCORS ? 'success' : 'error');
+
+            } catch (err) {
+                showResult('CORS Check Failed', {
+                    error: err.message,
+                    note: 'Could not complete CORS check'
+                }, 'error');
+            }
+        }
+
+        // Auto-run basic check on load
+        window.onload = function() {
+            console.log('Email Debug Tool loaded');
+            console.log('Contact PHP URL:', contactPhpPath);
+            // Auto-test endpoint
+            setTimeout(() => testEndpointExists(), 500);
+        };
+    </script>
+</body>
+</html>

@@ -13,10 +13,8 @@ export interface Apartment {
   available: boolean;
   description: string;
   descriptionEn: string;
-  features: string[];
-  featuresEn: string[];
+  feature_ids: number[];
   images: string[];
-  toggle_names: string[];
 }
 
 export interface Area {
@@ -34,7 +32,10 @@ export interface UnitType {
 }
 
 export interface Toggle {
+  id: number;
   toggle_name: string;
+  french_name: string;
+  english_name: string;
   toggle_image: string;
 }
 
@@ -48,13 +49,6 @@ export interface SeoPage {
   lastModified?: string;
   changeFrequency?: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never';
   priority?: number;
-}
-
-export interface ApartmentFeature {
-  id: number;
-  apartmentId: string;
-  name: string;
-  nameEn: string;
 }
 
 export interface ApartmentImage {

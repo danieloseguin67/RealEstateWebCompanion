@@ -30,7 +30,9 @@ export class TogglesComponent implements OnInit {
       filter: false,
       sortable: false
     },
-    { field: 'toggle_name', headerName: 'Feature Name', width: 300, filter: 'agTextColumnFilter', sortable: true, editable: true },
+    { field: 'toggle_name', headerName: 'Feature Name', width: 250, filter: 'agTextColumnFilter', sortable: true, editable: true },
+    { field: 'french_name', headerName: 'French Name', width: 250, filter: 'agTextColumnFilter', sortable: true, editable: true },
+    { field: 'english_name', headerName: 'English Name', width: 250, filter: 'agTextColumnFilter', sortable: true, editable: true },
     { field: 'toggle_image', headerName: 'Icon', width: 100, filter: 'agTextColumnFilter', sortable: true, editable: true }
   ];
   
@@ -88,7 +90,10 @@ export class TogglesComponent implements OnInit {
 
   addRow(): void {
     const newRow: Toggle = {
+      id: 0,
       toggle_name: '',
+      french_name: '',
+      english_name: '',
       toggle_image: ''
     };
     this.rowData = [newRow, ...this.rowData];

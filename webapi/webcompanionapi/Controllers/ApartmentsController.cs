@@ -83,11 +83,55 @@ public class ApartmentsController : ControllerBase
         Available = a.Available,
         Description = a.Description,
         DescriptionEn = a.DescriptionEn,
-        Features = JsonSerializer.Deserialize<List<string>>(a.FeaturesJson) ?? [],
-        FeaturesEn = JsonSerializer.Deserialize<List<string>>(a.FeaturesEnJson) ?? [],
-        Images = JsonSerializer.Deserialize<List<string>>(a.ImagesJson) ?? [],
-        ToggleNames = JsonSerializer.Deserialize<List<string>>(a.ToggleNamesJson) ?? [],
+        FeatureIds = ParseIntList(a.FeaturesJson),
+        Images = ParseStringList(a.ImagesJson),
     };
+
+    /// <summary>
+    /// Deserializes a JSON array of integers (or numeric strings) into a List&lt;int&gt;.
+    /// Returns an empty list on null, empty, or invalid JSON.
+    /// </summary>
+    private static List<int> ParseIntList(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return [];
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            var result = new List<int>();
+            foreach (var e in doc.RootElement.EnumerateArray())
+            {
+                if (e.ValueKind == JsonValueKind.Number && e.TryGetInt32(out var n))
+                    result.Add(n);
+                else if (e.ValueKind == JsonValueKind.String && int.TryParse(e.GetString(), out var s))
+                    result.Add(s);
+            }
+            return result;
+        }
+        catch
+        {
+            return [];
+        }
+    }
+
+    /// <summary>
+    /// Deserializes a JSON array that may contain strings or numbers into a List&lt;string&gt;.
+    /// Numbers are converted via ToString(). Returns an empty list on null, empty, or invalid JSON.
+    /// </summary>
+    private static List<string> ParseStringList(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return [];
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            return doc.RootElement.EnumerateArray()
+                .Select(e => e.ValueKind == JsonValueKind.String ? e.GetString()! : e.GetRawText())
+                .ToList();
+        }
+        catch
+        {
+            return [];
+        }
+    }
 
     private static Apartment MapToEntity(ApartmentDto dto) => new()
     {
@@ -105,10 +149,8 @@ public class ApartmentsController : ControllerBase
         Available = dto.Available,
         Description = dto.Description,
         DescriptionEn = dto.DescriptionEn,
-        FeaturesJson = JsonSerializer.Serialize(dto.Features),
-        FeaturesEnJson = JsonSerializer.Serialize(dto.FeaturesEn),
+        FeaturesJson = JsonSerializer.Serialize(dto.FeatureIds),
         ImagesJson = JsonSerializer.Serialize(dto.Images),
-        ToggleNamesJson = JsonSerializer.Serialize(dto.ToggleNames),
     };
 
     private static void UpdateEntity(Apartment entity, ApartmentDto dto)
@@ -126,9 +168,7 @@ public class ApartmentsController : ControllerBase
         entity.Available = dto.Available;
         entity.Description = dto.Description;
         entity.DescriptionEn = dto.DescriptionEn;
-        entity.FeaturesJson = JsonSerializer.Serialize(dto.Features);
-        entity.FeaturesEnJson = JsonSerializer.Serialize(dto.FeaturesEn);
+        entity.FeaturesJson = JsonSerializer.Serialize(dto.FeatureIds);
         entity.ImagesJson = JsonSerializer.Serialize(dto.Images);
-        entity.ToggleNamesJson = JsonSerializer.Serialize(dto.ToggleNames);
     }
 }

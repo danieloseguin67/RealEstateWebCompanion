@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Montreal4Rent - Redirection</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script type="text/javascript">
+    /*
+     * Single Page Apps for GitHub Pages
+     * https://github.com/rafrex/spa-github-pages
+     *
+     * Redirect 404s to the SPA entry, encoding the original path.
+     * segmentCount=1 for Project Pages (username.github.io/repo).
+     */
+    (function() {
+      var l = window.location;
+      var segmentCount = 1;
+      l.replace(
+        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+        l.pathname.split('/').slice(0, 1 + segmentCount).join('/') + '/?/' +
+        l.pathname.slice(1).split('/').slice(segmentCount).join('/').replace(/&/g, '~and~') +
+        (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+        l.hash
+      );
+    })();
+  </script>
+</head>
+<body></body>
+</html>

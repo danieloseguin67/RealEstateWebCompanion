@@ -28,8 +28,24 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? "";
+var dbUser     = Environment.GetEnvironmentVariable("DB_USER");
+var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD");
+if (!string.IsNullOrEmpty(dbUser) || !string.IsNullOrEmpty(dbPassword))
+{
+    var csb = new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(connectionString);
+    if (!string.IsNullOrEmpty(dbUser))
+    {
+        csb.IntegratedSecurity = false;
+        csb.UserID = dbUser;
+    }
+    if (!string.IsNullOrEmpty(dbPassword))
+        csb.Password = dbPassword;
+    connectionString = csb.ConnectionString;
+}
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(connectionString));
 
 var allowedOrigins = builder.Configuration.GetSection("AllowedCorsOrigins").Get<string[]>();
 
@@ -54,15 +70,12 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+app.UseSwagger();
+app.UseSwaggerUI(options =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(options =>
-    {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Real Estate Web Companion API v1");
-        options.RoutePrefix = "swagger";
-    });
-}
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "Real Estate Web Companion API v1");
+    options.RoutePrefix = "swagger";
+});
 
 app.UseCors();
 

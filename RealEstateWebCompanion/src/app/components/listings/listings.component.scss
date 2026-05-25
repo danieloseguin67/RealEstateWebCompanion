@@ -312,11 +312,54 @@
   }
 }
 
+.selected-features-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+
+  .selected-label {
+    width: 100%;
+    margin: 0 0 4px 0;
+    font-size: 12px;
+    color: #6c757d;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .feature-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    background-color: #e8f4fd;
+    border: 1px solid #b8daff;
+    border-radius: 20px;
+    font-size: 13px;
+    color: #004085;
+  }
+
+  .loading-text {
+    font-size: 13px;
+    color: #6c757d;
+    font-style: italic;
+  }
+}
+
+.no-features-text {
+  font-size: 13px;
+  color: #6c757d;
+  font-style: italic;
+  margin: 0 0 12px 0;
+}
+
 .amenities-list {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
-  
+  margin-top: 12px;
+
+
   .amenity-item {
     display: flex;
     align-items: center;
@@ -354,23 +397,82 @@
       flex: 1;
     }
   }
-  
-  .file-upload-wrapper {
+}
+
+.drop-zone {
+  position: relative;
+  border: 2px dashed #ced4da;
+  border-radius: 8px;
+  padding: 32px 20px;
+  text-align: center;
+  transition: border-color 0.2s, background-color 0.2s;
+  background-color: #fafafa;
+  cursor: pointer;
+  margin-top: 12px;
+
+  &.drag-over {
+    border-color: #007bff;
+    background-color: #e8f0fe;
+  }
+
+  .drop-zone-content {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 15px;
-    
+    gap: 6px;
+    pointer-events: none;
+
+    // Re-enable pointer events on the label/button only
     .file-upload-btn {
+      pointer-events: all;
       cursor: pointer;
       display: inline-block;
-      margin: 0;
+      margin: 4px 0;
+
+      &.disabled {
+        opacity: 0.65;
+        pointer-events: none;
+      }
     }
-    
-    .file-info {
+
+    .drop-icon {
+      font-size: 36px;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .drop-primary {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 600;
+      color: #343a40;
+    }
+
+    .drop-secondary {
+      margin: 0;
       font-size: 13px;
       color: #6c757d;
+    }
+
+    .drop-hint {
+      margin: 4px 0 0;
+      font-size: 12px;
+      color: #adb5bd;
       font-style: italic;
     }
+  }
+
+  .drop-zone-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.75);
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #007bff;
   }
 }
 

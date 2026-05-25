@@ -7,9 +7,9 @@ import { DataService } from '../../services/data.service';
 import { GoogleDriveService } from '../../services/google-drive.service';
 import { AuthService } from '../../services/auth.service';
 import { ApiService } from '../../services/api.service';
-import { Apartment, ApartmentImage } from '../../models/data.models';
+import { Apartment, ApartmentImage, Toggle } from '../../models/data.models';
 import { HttpClient } from '@angular/common/http';
-import { catchError, concatMap, finalize, from, of, switchMap, throwError } from 'rxjs';
+import { catchError, finalize, forkJoin, of, switchMap, throwError } from 'rxjs';
 
 @Component({
   selector: 'app-listings',
@@ -24,13 +24,11 @@ export class ListingsComponent implements OnInit {
   // Edit modal properties
   showEditModal = false;
   editingApartment: Apartment | null = null;
-  activeTab: 'basic' | 'details' | 'features' | 'images' = 'basic';
-  availableToggles: string[] = [];
+  activeTab: 'basic' | 'details' | 'images' = 'basic';
+  availableFeatures: Toggle[] = [];
   availableAreas: string[] = [];
   availableUnitTypes: string[] = [];
   newImageUrl = '';
-  newFeatureFr = '';
-  newFeatureEn = '';
   selectedFiles: FileList | null = null;
   editingImageIndex: number | null = null;
   editingImageName = '';
@@ -39,13 +37,9 @@ export class ListingsComponent implements OnInit {
   creatingImage = false;
   updatingImage = false;
   deletingImageId: number | null = null;
-  
-  // Apartment features properties
-  newFeatureName = '';
-  newFeatureNameEn = '';
-  editingFeatureId: number | null = null;
-  editFeatureName = '';
-  editFeatureNameEn = '';
+  isDragOver = false;
+  apartmentFeatures: Toggle[] = [];
+  loadingFeatures = false;
   
   // Check if current user is daniel.seguin
   get isDanielSeguin(): boolean {
@@ -138,14 +132,13 @@ export class ListingsComponent implements OnInit {
     { field: 'description', headerName: 'Description', width: 250, filter: 'agTextColumnFilter', sortable: true, editable: true },
     { field: 'descriptionEn', headerName: 'Description (EN)', width: 250, filter: 'agTextColumnFilter', sortable: true, editable: true },
     { 
-      field: 'features', 
+      field: 'feature_ids', 
       headerName: 'Features', 
       width: 200, 
       filter: 'agTextColumnFilter', 
       sortable: true, 
-      editable: true,
-      valueFormatter: params => params.value ? params.value.join(', ') : '',
-      valueParser: params => params.newValue ? params.newValue.split(',').map((s: string) => s.trim()) : []
+      editable: false,
+      valueFormatter: (params: any) => params.value ? params.value.length + ' features' : '0 features'
     },
     { 
       field: 'images', 
@@ -184,9 +177,9 @@ export class ListingsComponent implements OnInit {
       this.rowData = data;
     });
     
-    // Load available toggles for amenities checkboxes
+    // Load available features for checkboxes
     this.dataService.toggles$.subscribe(toggles => {
-      this.availableToggles = toggles.map(t => t.toggle_name);
+      this.availableFeatures = toggles;
     });
     
     // Load available areas
@@ -234,10 +227,8 @@ export class ListingsComponent implements OnInit {
       available: true,
       description: '',
       descriptionEn: '',
-      features: [],
-      featuresEn: [],
-      images: [],
-      toggle_names: []
+      feature_ids: [],
+      images: []
     };
     this.rowData = [newRow, ...this.rowData];
     this.gridApi?.setGridOption('rowData', this.rowData);
@@ -251,6 +242,7 @@ export class ListingsComponent implements OnInit {
     
     if (this.editingApartment?.id) {
       this.loadApartmentImages(this.editingApartment.id);
+      this.loadApartmentFeatures(this.editingApartment.feature_ids ?? []);
     }
   }
   
@@ -258,6 +250,7 @@ export class ListingsComponent implements OnInit {
     this.showEditModal = false;
     this.editingApartment = null;
     this.activeTab = 'basic';
+    this.apartmentFeatures = [];
     this.cancelEditingImageName();
   }
   
@@ -277,82 +270,40 @@ export class ListingsComponent implements OnInit {
     this.closeEditModal();
   }
   
-  setActiveTab(tab: 'basic' | 'details' | 'features' | 'images'): void {
+  setActiveTab(tab: 'basic' | 'details' | 'images'): void {
     this.activeTab = tab;
   }
   
-  addFeature(language: 'fr' | 'en'): void {
-    if (!this.editingApartment) return;
-    
-    if (language === 'fr') {
-      const feature = this.newFeatureFr.trim();
-      if (!feature) return;
-      
-      if (!this.editingApartment.features) {
-        this.editingApartment.features = [];
-      }
-      this.editingApartment.features.push(feature);
-      this.newFeatureFr = '';
-    } else {
-      const feature = this.newFeatureEn.trim();
-      if (!feature) return;
-      
-      if (!this.editingApartment.featuresEn) {
-        this.editingApartment.featuresEn = [];
-      }
-      this.editingApartment.featuresEn.push(feature);
-      this.newFeatureEn = '';
+  loadApartmentFeatures(featureIds: number[]): void {
+    if (!featureIds.length) {
+      this.apartmentFeatures = [];
+      return;
     }
+    this.loadingFeatures = true;
+    forkJoin(featureIds.map(id => this.apiService.getFeatureById(id))).subscribe({
+      next: (features) => { this.apartmentFeatures = features; this.loadingFeatures = false; },
+      error: () => { this.apartmentFeatures = []; this.loadingFeatures = false; }
+    });
   }
-  
-  editFeature(index: number, language: 'fr' | 'en'): void {
-    // Feature is edited inline via ngModel binding
-    // This method is a placeholder in case additional logic is needed
-  }
-  
-  removeFeature(index: number, language: 'fr' | 'en'): void {
+
+  toggleFeature(featureId: number): void {
     if (!this.editingApartment) return;
     
-    if (language === 'fr') {
-      this.editingApartment.features.splice(index, 1);
-    } else {
-      this.editingApartment.featuresEn.splice(index, 1);
-    }
-  }
-  
-  toggleFeature(featureName: string): void {
-    if (!this.editingApartment) return;
-    
-    const index = this.editingApartment.toggle_names.indexOf(featureName);
+    const index = this.editingApartment.feature_ids.indexOf(featureId);
     if (index > -1) {
-      this.editingApartment.toggle_names.splice(index, 1);
+      this.editingApartment.feature_ids.splice(index, 1);
+      this.apartmentFeatures = this.apartmentFeatures.filter(f => f.id !== featureId);
     } else {
-      this.editingApartment.toggle_names.push(featureName);
+      this.editingApartment.feature_ids.push(featureId);
+      this.apiService.getFeatureById(featureId).subscribe({
+        next: (f) => { this.apartmentFeatures = [...this.apartmentFeatures, f]; }
+      });
     }
   }
   
-  isFeatureSelected(featureName: string): boolean {
-    return this.editingApartment?.toggle_names.includes(featureName) || false;
+  isFeatureSelected(featureId: number): boolean {
+    return this.editingApartment?.feature_ids.includes(featureId) || false;
   }
-  
-  updateFeatures(value: string): void {
-    if (!this.editingApartment) return;
-    // Split by newlines and filter out empty lines
-    this.editingApartment.features = value
-      .split('\n')
-      .map(line => line.trim())
-      .filter(line => line.length > 0);
-  }
-  
-  updateFeaturesEn(value: string): void {
-    if (!this.editingApartment) return;
-    // Split by newlines and filter out empty lines
-    this.editingApartment.featuresEn = value
-      .split('\n')
-      .map(line => line.trim())
-      .filter(line => line.length > 0);
-  }
-  
   loadApartmentImages(apartmentId: string): void {
     this.loadingImages = true;
     this.apiService.getApartmentImages(apartmentId).subscribe({
@@ -374,18 +325,6 @@ export class ListingsComponent implements OnInit {
     });
   }
   
-  addApartmentFeature(): void {
-    if (this.editingFeatureId !== null) return;
-    if (!this.editingApartment || !this.newFeatureName.trim() || !this.newFeatureNameEn.trim()) return;
-
-    if (!this.editingApartment.features) this.editingApartment.features = [];
-    if (!this.editingApartment.featuresEn) this.editingApartment.featuresEn = [];
-
-    this.editingApartment.features.push(this.newFeatureName.trim());
-    this.editingApartment.featuresEn.push(this.newFeatureNameEn.trim());
-    this.clearFeatureForm();
-  }
-
   private ensureApartmentExistsInApi(apartment: Apartment) {
     return this.apiService.getApartmentById(apartment.id).pipe(
       catchError((error) => {
@@ -403,37 +342,6 @@ export class ListingsComponent implements OnInit {
         return throwError(() => error);
       })
     );
-  }
-  
-  removeApartmentFeature(index: number): void {
-    if (!this.editingApartment) return;
-    if (!confirm('Are you sure you want to remove this feature?')) return;
-    this.editingApartment.features.splice(index, 1);
-    this.editingApartment.featuresEn.splice(index, 1);
-  }
-  
-  clearFeatureForm(): void {
-    this.newFeatureName = '';
-    this.newFeatureNameEn = '';
-  }
-  
-  startEditFeature(index: number): void {
-    this.editingFeatureId = index;
-    this.editFeatureName = this.editingApartment!.features[index];
-    this.editFeatureNameEn = this.editingApartment!.featuresEn[index];
-  }
-  
-  saveFeature(index: number): void {
-    if (!this.editFeatureName.trim() || !this.editFeatureNameEn.trim()) return;
-    this.editingApartment!.features[index] = this.editFeatureName.trim();
-    this.editingApartment!.featuresEn[index] = this.editFeatureNameEn.trim();
-    this.cancelEdit();
-  }
-  
-  cancelEdit(): void {
-    this.editingFeatureId = null;
-    this.editFeatureName = '';
-    this.editFeatureNameEn = '';
   }
   
   addImage(): void {
@@ -471,6 +379,30 @@ export class ListingsComponent implements OnInit {
       this.uploadSelectedImages();
     }
   }
+
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver = true;
+  }
+
+  onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver = false;
+  }
+
+  onDrop(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver = false;
+
+    const files = event.dataTransfer?.files;
+    if (files && files.length > 0) {
+      this.selectedFiles = files;
+      this.uploadSelectedImages();
+    }
+  }
   
   uploadSelectedImages(): void {
     if (this.creatingImage) return;
@@ -478,29 +410,22 @@ export class ListingsComponent implements OnInit {
 
     const files = this.selectedFiles;
     this.selectedFiles = null;
-
-    const fileNames = Array.from(files).map(f => f.name).filter(Boolean);
-    if (fileNames.length === 0) return;
+    if (files.length === 0) return;
 
     this.creatingImage = true;
     this.ensureApartmentExistsInApi(this.editingApartment).pipe(
-      switchMap(() => from(fileNames).pipe(
-        concatMap((fileName) => this.apiService.createApartmentImage({
-          apartmentId: this.editingApartment!.id,
-          fileName
-        }))
-      )),
+      switchMap(() => this.apiService.uploadApartmentImageFiles(this.editingApartment!.id, files)),
       finalize(() => {
         this.creatingImage = false;
       })
     ).subscribe({
       next: (created) => {
-        this.apartmentImages.push(created);
+        this.apartmentImages.push(...created);
         this.editingApartment!.images = this.apartmentImages.map(i => i.fileName);
       },
       error: (error) => {
-        console.error('Error creating apartment images:', error);
-        alert('Failed to add one or more image names. Please try again.');
+        console.error('Error uploading apartment images:', error);
+        alert('Failed to upload one or more images. Please try again.');
       }
     });
   }

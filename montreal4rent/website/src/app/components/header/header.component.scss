@@ -1,0 +1,758 @@
+.header {
+  background: var(--white);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  height: 80px;
+  width: 100%;
+  overflow-x: hidden;
+
+  .container {
+    height: 100%;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    max-width: 100%;
+    width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
+  }
+
+  .header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+    position: relative;
+    gap: 0.5rem;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+// Logo
+.logo {
+  flex-shrink: 1; // Allow logo to shrink on small screens
+  min-width: 0; // Allow flex item to shrink below content size
+  max-width: 100%;
+  overflow: hidden;
+  
+  .logo-link {
+    text-decoration: none;
+    color: var(--text-dark-gray);
+    display: block;
+    max-width: 100%;
+    
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin: 0;
+      background: linear-gradient(135deg, var(--primary-orange), var(--trust-navy));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      white-space: nowrap;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+}
+
+// French layout adjustments - move logo more to the left
+.header-content.french-layout {
+  .logo {
+    margin-right: 1rem;
+  }
+}
+
+// Desktop Navigation
+.desktop-nav {
+  display: none;
+  
+  .nav-list {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 2rem;
+    
+    li {
+      a {
+        text-decoration: none;
+        color: var(--text-dark-gray);
+        font-weight: 500;
+        font-size: 0.9rem;
+        padding: 0.5rem 0;
+        border-bottom: 2px solid transparent;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+        
+        &:hover {
+          color: var(--primary-orange);
+          border-bottom-color: var(--primary-orange);
+        }
+        
+        &.active {
+          color: var(--trust-navy);
+          border-bottom-color: var(--trust-navy);
+        }
+      }
+    }
+  }
+}
+
+// Mobile Menu Button - Now shows on all devices
+.mobile-menu-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--text-dark-gray);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background-color: var(--soft-warm-gray);
+    color: var(--primary-orange);
+  }
+
+  .fas {
+    transition: all 0.3s ease;
+  }
+}
+
+// Header Actions
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  position: relative;
+  margin-left: auto; // Always push to the right
+  max-width: 100%;
+  overflow: visible; // Allow dropdowns
+}
+
+.header-top-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+// Language Switcher
+.language-switcher {
+  display: flex;
+  gap: 0.5rem;
+
+  .lang-btn {
+    padding: 0.5rem 0.875rem;
+    border: none;
+    background: var(--soft-warm-gray);
+    color: var(--text-dark-gray);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    min-width: 44px;
+    min-height: 44px;
+
+    &:hover:not(.active) {
+      background-color: var(--primary-orange);
+      color: #1a1a1a;
+    }
+
+    &.active {
+      background-color: var(--primary-orange);
+      color: #1a1a1a;
+    }
+  }
+}
+
+// Book Tour Button
+.book-tour-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #1a6e8a;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  white-space: nowrap;
+
+  &:hover {
+    background: #084080;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(11, 61, 145, 0.3);
+  }
+}
+
+// Mobile Menu
+.mobile-menu {
+  position: fixed;
+  top: 90px; // Default desktop/tablet
+  right: 0.75rem;
+  background: var(--white);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  z-index: 1001;
+  min-width: 200px;
+  max-width: 280px;
+  transform: translateY(-10px) scale(0.95);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  overflow: visible;
+
+  &.show {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .mobile-nav {
+    .mobile-nav-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+
+      li {
+        &:first-child a {
+          background-color: var(--trust-navy);
+          color: var(--white);
+          font-weight: 600;
+          border-left: 4px solid var(--trust-navy);
+          
+          &:hover {
+            background-color: var(--trust-navy);
+            color: var(--white);
+          }
+        }
+
+        a {
+          display: block;
+          padding: 1rem 1.5rem;
+          color: var(--text-dark-gray);
+          text-decoration: none;
+          font-weight: 400;
+          font-size: 0.9rem;
+          transition: all 0.3s ease;
+          border: none;
+          background: var(--white);
+
+          &:hover {
+            background-color: var(--soft-warm-gray);
+            color: var(--text-dark-gray);
+          }
+
+          &.active:not(.home-link) {
+            background-color: var(--soft-warm-gray);
+            color: var(--primary-orange);
+          }
+        }
+        
+        &.mobile-menu-divider {
+          border-top: 1px solid var(--light-gray);
+          margin-top: 0.5rem;
+          padding-top: 0.5rem;
+        }
+      }
+    }
+    
+    .mobile-menu-a11y-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      width: 100%;
+      padding: 1rem 1.5rem;
+      color: var(--primary-orange);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+      border: none;
+      background: var(--white);
+      cursor: pointer;
+      text-align: left;
+      
+      i {
+        font-size: 1.1rem;
+      }
+
+      &:hover {
+        background-color: rgba(250, 116, 45, 0.1);
+        color: var(--primary-orange);
+      }
+    }
+  }
+}
+
+.mobile-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 998;
+}
+
+// Booking Modal
+.booking-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1002;
+  padding: 1rem;
+
+  .booking-modal {
+    background: var(--white);
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.5rem 2rem 1rem;
+      border-bottom: 1px solid var(--light-neutral-gray);
+
+      h3 {
+        margin: 0;
+        color: var(--text-dark-gray);
+        font-size: 1.25rem;
+        font-weight: 600;
+      }
+
+      .modal-close {
+        background: none;
+        border: none;
+        font-size: 1.25rem;
+        color: var(--text-medium-gray);
+        cursor: pointer;
+        padding: 0.5rem;
+        border-radius: 50%;
+        transition: all 0.3s ease;
+
+        &:hover {
+          background-color: var(--soft-warm-gray);
+          color: var(--text-dark-gray);
+        }
+      }
+    }
+
+    .modal-body {
+      padding: 1.5rem 2rem 2rem;
+
+      .booking-form {
+        .form-group {
+          margin-bottom: 1.5rem;
+
+          label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-dark-gray);
+            font-size: 0.9rem;
+          }
+
+          .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--light-neutral-gray);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+
+            &:focus {
+              outline: none;
+              border-color: var(--primary-orange);
+              box-shadow: 0 0 0 3px rgba(250, 116, 45, 0.1);
+            }
+
+            &::placeholder {
+              color: var(--text-light-gray);
+            }
+          }
+
+          textarea.form-control {
+            resize: vertical;
+            min-height: 100px;
+          }
+        }
+
+        .form-actions {
+          display: flex;
+          gap: 1rem;
+          justify-content: flex-end;
+          margin-top: 2rem;
+          padding-top: 1rem;
+          border-top: 1px solid var(--light-neutral-gray);
+
+          .btn {
+            min-width: 120px;
+            
+            &.btn-primary {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 0.5rem;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Responsive Design
+// Extra small mobile (Samsung Galaxy, small Android phones)
+@media (max-width: 374.98px) {
+  .header {
+    height: auto;
+    min-height: 80px;
+  }
+
+  .header .container {
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+  }
+  
+  .header-content {
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    padding: 0.4rem 0;
+  }
+
+  .logo {
+    order: 1;
+  }
+
+  .header-actions {
+    order: 2;
+    flex-shrink: 0;
+    margin-left: auto;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.4rem;
+    width: auto;
+  }
+
+  .header-top-actions {
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+  }
+
+  .book-tour-btn {
+    padding: 0.45rem 0.75rem;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    width: 100%;
+    justify-content: center;
+    
+    // Show only text, hide icon
+    .fas {
+      display: none;
+    }
+  }
+
+  .language-switcher {
+    display: flex;
+    gap: 0.25rem;
+
+    .lang-btn {
+      padding: 0.45rem 0.65rem;
+      min-width: 40px;
+      min-height: 40px;
+      font-size: 0.7rem;
+    }
+  }
+
+  .mobile-menu-btn {
+    padding: 0.5rem;
+    margin-right: 0;
+    min-width: 44px; // Ensure touchable area (WCAG standard)
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+  }
+
+  .mobile-menu {
+    top: 105px; // Account for taller mobile header
+    margin-top: 0;
+    right: 0.5rem;
+    left: auto;
+    min-width: 200px;
+    max-width: calc(100vw - 1rem);
+
+    .mobile-nav .mobile-nav-list li a {
+      padding: 0.875rem 1rem;
+      font-size: 0.9rem;
+    }
+  }
+
+  .logo {
+    flex-shrink: 2; // Allow logo to shrink more on tiny screens
+    min-width: 0;
+    overflow: hidden;
+    
+    .logo-link h1 {
+      font-size: 1.1rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+}
+
+@media (max-width: 767.98px) {
+  .header {
+    height: auto;
+    min-height: 80px;
+  }
+
+  .header .container {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+  
+  .header-content {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+  }
+
+  .logo {
+    order: 1;
+  }
+
+  .header-actions {
+    order: 2;
+    flex-shrink: 0;
+    margin-left: auto;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+    width: auto;
+  }
+
+  .header-top-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .book-tour-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    width: 100%;
+    justify-content: center;
+
+    .fas {
+      display: none;
+    }
+  }
+
+  .language-switcher {
+    display: flex;
+    gap: 0.35rem;
+
+    .lang-btn {
+      padding: 0.5rem 0.75rem;
+      min-width: 44px;
+      min-height: 44px;
+      font-size: 0.75rem;
+    }
+  }
+
+  .mobile-menu-btn {
+    padding: 0.625rem;
+    margin-right: 0;
+    min-width: 44px; // Ensure touchable area (WCAG standard)
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .mobile-menu {
+    top: 100px; // Account for mobile header height
+    margin-top: 0;
+    right: 0.75rem;
+    left: auto;
+    min-width: 220px;
+    max-width: calc(100vw - 1.5rem);
+
+    .mobile-nav .mobile-nav-list li a {
+      padding: 1rem 1.25rem;
+      font-size: 0.9rem;
+    }
+  }
+
+  .logo .logo-link h1 {
+    font-size: 1.5rem;
+  }
+
+  .booking-modal {
+    margin: 1rem;
+    
+    .modal-header {
+      padding: 1rem 1.5rem 0.75rem;
+    }
+    
+    .modal-body {
+      padding: 1rem 1.5rem 1.5rem;
+    }
+    
+    .form-actions {
+      flex-direction: column;
+      
+      .btn {
+        width: 100%;
+      }
+    }
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1199.98px) {
+  .nav .nav-list {
+    gap: 1.5rem;
+  }
+  
+  .header-actions {
+    gap: 0.75rem;
+    flex-shrink: 0;
+  }
+
+  .mobile-menu {
+    min-width: 240px;
+    max-width: 320px;
+    right: 1rem; /* Align to right edge for tablet */
+    left: auto;
+
+    .mobile-nav .mobile-nav-list li a {
+      padding: 1.125rem 1.75rem;
+      font-size: 0.95rem;
+    }
+  }
+}
+
+// Desktop enhancements
+@media (min-width: 1200px) {
+  .desktop-nav {
+    display: block;
+  }
+  
+  .mobile-menu-btn {
+    display: none;
+  }
+  
+  .mobile-menu {
+    display: none;
+  }
+}
+
+// Alert messages in booking modal
+.alert {
+  padding: 0.75rem 1rem;
+  margin: 1rem 0;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  animation: slideDown 0.3s ease-out;
+}
+
+.alert-success {
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+  color: #155724;
+}
+
+.alert-error {
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Tablet and mobile - show burger menu
+@media (max-width: 1199.98px) {
+  .desktop-nav {
+    display: none;
+  }
+  
+  .mobile-menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0; // Never shrink
+  }
+  
+  .header-actions {
+    flex-shrink: 0; // Never shrink the actions container
+  }
+  
+  .mobile-menu {
+    min-width: 220px;
+    max-width: 300px;
+    right: 0.75rem; /* Align to right with padding */
+    left: auto;
+
+    .mobile-nav .mobile-nav-list li a {
+      padding: 1.125rem 1.75rem;
+      font-size: 0.95rem;
+    }
+  }
+}
+
+// Desktop - single row layout
+@media (min-width: 768px) {
+  .header-actions {
+    flex-direction: row !important;
+    align-items: center;
+    width: auto;
+  }
+
+  .header-top-actions {
+    display: flex;
+    align-items: center;
+  }
+
+  .book-tour-btn {
+    width: auto !important;
+  }
+}

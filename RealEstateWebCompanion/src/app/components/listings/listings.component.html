@@ -47,12 +47,6 @@
         </button>
         <button 
           class="tab-btn" 
-          [class.active]="activeTab === 'features'"
-          (click)="setActiveTab('features')">
-          Features
-        </button>
-        <button 
-          class="tab-btn" 
           [class.active]="activeTab === 'images'"
           (click)="setActiveTab('images')">
           Images
@@ -133,14 +127,27 @@
           </div>
           
           <div class="property-attributes">
-            <h4>Amenities</h4>
+            <h4>Features</h4>
+            
+            <!-- Resolved features from /api/Features/{id} -->
+            <div class="selected-features-list" *ngIf="apartmentFeatures.length > 0 || loadingFeatures">
+              <p class="selected-label">Selected features:</p>
+              <span *ngIf="loadingFeatures" class="loading-text">Loading...</span>
+              <span 
+                *ngFor="let f of apartmentFeatures" 
+                class="feature-badge">
+                {{ f.toggle_image }} {{ f.english_name }}
+              </span>
+            </div>
+            <p *ngIf="!loadingFeatures && apartmentFeatures.length === 0" class="no-features-text">No features selected.</p>
+
             <div class="amenities-list">
-              <label *ngFor="let toggle of availableToggles" class="amenity-item">
+              <label *ngFor="let feature of availableFeatures" class="amenity-item">
                 <input 
                   type="checkbox" 
-                  [checked]="isFeatureSelected(toggle)"
-                  (change)="toggleFeature(toggle)">
-                <span>{{ toggle }}</span>
+                  [checked]="isFeatureSelected(feature.id)"
+                  (change)="toggleFeature(feature.id)">
+                <span>{{ feature.toggle_image }} {{ feature.english_name }}</span>
               </label>
             </div>
           </div>
@@ -159,160 +166,47 @@
           </div>
         </div>
         
-        <!-- Features Tab -->
-        <div class="tab-content" *ngIf="activeTab === 'features'">
-          <div class="features-manager">
-            <h4>Apartment Features</h4>
-            
-            <!-- Features Grid -->
-            <div class="features-grid">
-              <table class="features-table">
-                <thead>
-                  <tr>
-                    <th>Feature (French)</th>
-                    <th>Feature (English)</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <!-- Empty state -->
-                  <tr *ngIf="!editingApartment.features?.length" class="empty-row">
-                    <td colspan="3" class="text-center">
-                      No features added yet. Use the form below to add features.
-                    </td>
-                  </tr>
-                  
-                  <!-- Feature rows -->
-                  <tr *ngFor="let feature of editingApartment.features; let i = index" [class.editing]="editingFeatureId === i">
-                    <!-- Display mode -->
-                    <ng-container *ngIf="editingFeatureId !== i">
-                      <td>{{ feature }}</td>
-                      <td>{{ editingApartment.featuresEn[i] }}</td>
-                      <td class="actions-cell">
-                        <button 
-                          class="btn btn-primary btn-sm" 
-                          (click)="startEditFeature(i)"
-                          title="Edit feature">
-                          Edit
-                        </button>
-                        <button 
-                          class="btn btn-danger btn-sm" 
-                          (click)="removeApartmentFeature(i)"
-                          title="Delete feature">
-                          Delete
-                        </button>
-                      </td>
-                    </ng-container>
-                    
-                    <!-- Edit mode -->
-                    <ng-container *ngIf="editingFeatureId === i">
-                      <td>
-                        <input 
-                          type="text" 
-                          [(ngModel)]="editFeatureName" 
-                          class="form-control"
-                          placeholder="Feature (French)"
-                          (keyup.enter)="saveFeature(i)">
-                      </td>
-                      <td>
-                        <input 
-                          type="text" 
-                          [(ngModel)]="editFeatureNameEn" 
-                          class="form-control"
-                          placeholder="Feature (English)"
-                          (keyup.enter)="saveFeature(i)">
-                      </td>
-                      <td class="actions-cell">
-                        <button 
-                          class="btn btn-success btn-sm" 
-                          (click)="saveFeature(i)"
-                          [disabled]="!editFeatureName.trim() || !editFeatureNameEn.trim()"
-                          title="Save changes">
-                          Save
-                        </button>
-                        <button 
-                          class="btn btn-secondary btn-sm" 
-                          (click)="cancelEdit()"
-                          title="Cancel editing">
-                          Cancel
-                        </button>
-                      </td>
-                    </ng-container>
-                  </tr>
-
-                  <!-- Add new feature row (bottom of grid) -->
-                  <tr class="add-row" [class.disabled]="editingFeatureId !== null">
-                    <td>
-                      <input
-                        type="text"
-                        [(ngModel)]="newFeatureName"
-                        class="form-control"
-                        placeholder="Feature (French)"
-                        (keyup.enter)="addApartmentFeature()"
-                        [disabled]="editingFeatureId !== null">
-                    </td>
-                    <td>
-                      <input
-                        type="text"
-                        [(ngModel)]="newFeatureNameEn"
-                        class="form-control"
-                        placeholder="Feature (English)"
-                        (keyup.enter)="addApartmentFeature()"
-                        [disabled]="editingFeatureId !== null">
-                    </td>
-                    <td class="actions-cell">
-                      <button
-                        class="btn btn-success btn-sm"
-                        (click)="addApartmentFeature()"
-                        [disabled]="editingFeatureId !== null || !newFeatureName.trim() || !newFeatureNameEn.trim()"
-                        title="Add feature">
-                        Add
-                      </button>
-                      <button
-                        class="btn btn-secondary btn-sm"
-                        (click)="clearFeatureForm()"
-                        [disabled]="editingFeatureId !== null"
-                        type="button"
-                        title="Clear">
-                        Clear
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-        
         <!-- Images Tab -->
         <div class="tab-content" *ngIf="activeTab === 'images'">
           <div class="image-upload">
             <div class="form-group">
-              <label>Add Image URL:</label>
+              <label>Add Image URL / Filename:</label>
               <div class="input-with-button">
                 <input 
                   type="text" 
                   [(ngModel)]="newImageUrl" 
-                  placeholder="Enter image URL"
+                  placeholder="Enter image URL or filename"
                   (keyup.enter)="addImage()"
                   [disabled]="loadingImages || creatingImage">
-                <button class="btn btn-success" (click)="addImage()" [disabled]="loadingImages || creatingImage">Add Image</button>
+                <button class="btn btn-success" (click)="addImage()" [disabled]="loadingImages || creatingImage">Add</button>
               </div>
             </div>
-            
-            <div class="form-group">
-              <label>Or Upload from Computer:</label>
-              <div class="file-upload-wrapper">
-                <label class="btn btn-primary file-upload-btn">
+
+            <!-- Drag & Drop zone -->
+            <div 
+              class="drop-zone"
+              [class.drag-over]="isDragOver"
+              (dragover)="onDragOver($event)"
+              (dragleave)="onDragLeave($event)"
+              (drop)="onDrop($event)">
+              <div class="drop-zone-content">
+                <span class="drop-icon">🖼️</span>
+                <p class="drop-primary">Drag &amp; drop images here</p>
+                <p class="drop-secondary">or</p>
+                <label class="btn btn-primary file-upload-btn" [class.disabled]="loadingImages || creatingImage">
                   Browse Files...
                   <input 
                     type="file" 
                     accept="image/*" 
                     multiple
                     (change)="onFileSelected($event)" 
-                    style="display: none;">
+                    style="display: none;"
+                    [disabled]="loadingImages || creatingImage">
                 </label>
-                <span class="file-info">Supports multiple image files (JPG, PNG, etc.)</span>
+                <p class="drop-hint">Supports multiple image files (JPG, PNG, etc.)</p>
+              </div>
+              <div class="drop-zone-overlay" *ngIf="creatingImage">
+                <span>Uploading...</span>
               </div>
             </div>
           </div>

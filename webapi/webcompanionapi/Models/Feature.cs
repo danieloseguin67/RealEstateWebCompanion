@@ -7,9 +7,12 @@ public class Feature
     [Key]
     public int Id { get; set; }
 
-    [MaxLength(100)]
-    public string ToggleName { get; set; } = string.Empty;
-
     [MaxLength(10)]
     public string ToggleImage { get; set; } = string.Empty;
+
+    [MaxLength(100)]
+    public string FrenchName { get; set; } = string.Empty;
+
+    [MaxLength(100)]
+    public string EnglishName { get; set; } = string.Empty;
 }

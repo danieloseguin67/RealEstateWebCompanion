@@ -1,0 +1,18 @@
+[
+  {
+    "unit_type_name": "Studio",
+    "rooms": 1
+  },
+  {
+    "unit_type_name": "1 Bedroom",
+    "rooms": 1
+  },
+  {
+    "unit_type_name": "2 Bedrooms",
+    "rooms": 2
+  },
+  {
+    "unit_type_name": "3 Bedrooms",
+    "rooms": 3
+  }
+]
