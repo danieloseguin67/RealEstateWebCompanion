@@ -2,38 +2,64 @@
   <div class="header">
     <h2>Features Management</h2>
     <div class="actions">
+      <button class="btn btn-primary" (click)="saveAllChanges()" [disabled]="!hasPendingChanges || savingChanges">
+        Save{{ pendingChangesCount ? ' (' + pendingChangesCount + ')' : '' }}
+      </button>
       <button class="btn btn-success" (click)="addRow()">
         + Add Feature
       </button>
-      @if (googleDriveFolderUrl) {
-        <div class="button-group">
-          <button class="btn btn-primary" (click)="exportData()" title="Export Features data to local file">
-            📤 Export from Features Manager
-          </button>
-          <button class="btn btn-success" (click)="openGoogleDriveToUpload()" title="Open Google Drive to upload exported file">
-            ⬆️ Put into SeguinDev Drive
-          </button>
-        </div>
-        <div class="button-group">
-          <button class="btn btn-primary" (click)="quickImportFromSeguinDev()" title="Download Features file from SeguinDev Google Drive">
-            📥 Get from SeguinDev Drive
-          </button>
-          <label class="btn btn-secondary" title="Import Features data from local file">
-            📋 Import to Features Manager
-            <input type="file" accept=".json" (change)="importData($event)" style="display: none;">
-          </label>
-        </div>
-      } @else {
-        <button class="btn btn-primary" (click)="exportData()">
-          Export Features (JSON)
-        </button>
-        <label class="btn btn-secondary">
-          Import Features (JSON)
-          <input type="file" accept=".json" (change)="importData($event)" style="display: none;">
-        </label>
-      }
     </div>
   </div>
+
+  @if (errorMessage) {
+    <div class="error-banner" role="alert">
+      <span>{{ errorMessage }}</span>
+      <button class="error-dismiss" (click)="clearError()" aria-label="Dismiss">&times;</button>
+    </div>
+  }
+
+  @if (isEditing && editingToggle) {
+    <div class="edit-form-overlay">
+      <div class="edit-form">
+        <h3>Edit Feature</h3>
+        <form>
+          <div class="form-group">
+            <label for="french_name">French Name:</label>
+            <input type="text" id="french_name" [(ngModel)]="editingToggle.french_name" name="french_name" class="form-control">
+          </div>
+          <div class="form-group">
+            <label for="english_name">English Name:</label>
+            <input type="text" id="english_name" [(ngModel)]="editingToggle.english_name" name="english_name" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>Icon:</label>
+            <div class="icon-picker">
+              <div class="icon-preview">
+                @if (editingIconIsImage) {
+                  <img [src]="editingToggle.toggle_image" alt="Feature icon" class="icon-img-preview">
+                } @else {
+                  <span class="icon-emoji-preview">{{ editingToggle.toggle_image || '—' }}</span>
+                }
+              </div>
+              <div class="icon-inputs">
+                <input type="text" [(ngModel)]="editingToggle.toggle_image" name="toggle_image"
+                  class="form-control icon-text-input" placeholder="Paste emoji or type icon character">
+                <label class="btn btn-secondary browse-btn">
+                  Browse...
+                  <input type="file" accept="image/*" (change)="onIconFileSelected($event)" style="display:none">
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn btn-primary" (click)="saveEdit()">Save</button>
+            <button type="button" class="btn btn-secondary" (click)="cancelEdit()">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
   <ag-grid-angular
     style="width: 100%; height: 500px;"
     class="ag-theme-alpine"

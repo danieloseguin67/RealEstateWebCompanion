@@ -18,22 +18,23 @@ export interface Apartment {
 }
 
 export interface Area {
-  id: string;
+  id: number;
   name: string;
   nameFr: string;
   nameEn: string;
-  description: string;
+  descriptionFr: string;
   descriptionEn: string;
   link: string;
 }
 
 export interface UnitType {
-  unit_type_name: string;
+  id: number;
+  unitTypeNameEn: string;
+  unitTypeNameFr: string;
 }
 
 export interface Toggle {
   id: number;
-  toggle_name: string;
   french_name: string;
   english_name: string;
   toggle_image: string;

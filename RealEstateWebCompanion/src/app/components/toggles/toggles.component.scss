@@ -92,3 +92,141 @@
     background-color: #c0392b;
   }
 }
+
+::ng-deep .edit-btn {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 4px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  margin-right: 4px;
+
+  &:hover {
+    background-color: #2980b9;
+  }
+}
+
+.error-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #fdecea;
+  color: #b71c1c;
+  border: 1px solid #ef9a9a;
+  border-radius: 4px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+
+  .error-dismiss {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    line-height: 1;
+    cursor: pointer;
+    color: #b71c1c;
+    padding: 0 0.25rem;
+    &:hover { opacity: 0.7; }
+  }
+}
+
+.edit-form-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+
+  .edit-form {
+    background: white;
+    border-radius: 8px;
+    padding: 2rem;
+    width: 520px;
+    max-width: 95vw;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+
+    h3 {
+      margin: 0 0 1.5rem;
+      font-size: 1.25rem;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+
+      label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.3rem;
+        font-size: 0.9rem;
+      }
+
+      .form-control {
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 1rem;
+        box-sizing: border-box;
+      }
+    }
+
+    .icon-picker {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+
+      .icon-preview {
+        flex-shrink: 0;
+        width: 56px;
+        height: 56px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f9f9f9;
+
+        .icon-emoji-preview {
+          font-size: 2rem;
+          line-height: 1;
+        }
+
+        .icon-img-preview {
+          width: 40px;
+          height: 40px;
+          object-fit: contain;
+        }
+      }
+
+      .icon-inputs {
+        flex: 1;
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+
+        .icon-text-input {
+          flex: 1;
+        }
+
+        .browse-btn {
+          flex-shrink: 0;
+          white-space: nowrap;
+          cursor: pointer;
+          padding: 0.5rem 1rem;
+          font-size: 0.9rem;
+        }
+      }
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+  }
+}
+

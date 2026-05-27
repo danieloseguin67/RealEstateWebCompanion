@@ -25,7 +25,7 @@ public class AreasController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<AreaDto>> GetById(string id)
+    public async Task<ActionResult<AreaDto>> GetById(int id)
     {
         var area = await _db.Areas.FindAsync(id);
         if (area == null) return NotFound();
@@ -42,7 +42,7 @@ public class AreasController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(string id, AreaDto dto)
+    public async Task<IActionResult> Update(int id, AreaDto dto)
     {
         var entity = await _db.Areas.FindAsync(id);
         if (entity == null) return NotFound();
@@ -50,7 +50,7 @@ public class AreasController : ControllerBase
         entity.Name = dto.Name;
         entity.NameFr = dto.NameFr;
         entity.NameEn = dto.NameEn;
-        entity.Description = dto.Description;
+        entity.DescriptionFr = dto.DescriptionFr;
         entity.DescriptionEn = dto.DescriptionEn;
         entity.Link = dto.Link;
 
@@ -59,7 +59,7 @@ public class AreasController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(string id)
+    public async Task<IActionResult> Delete(int id)
     {
         var entity = await _db.Areas.FindAsync(id);
         if (entity == null) return NotFound();
@@ -74,18 +74,18 @@ public class AreasController : ControllerBase
         Name = a.Name,
         NameFr = a.NameFr,
         NameEn = a.NameEn,
-        Description = a.Description,
+        DescriptionFr = a.DescriptionFr,
         DescriptionEn = a.DescriptionEn,
         Link = a.Link,
     };
 
     private static Area MapToEntity(AreaDto dto) => new()
     {
-        Id = dto.Id,
+        // Id intentionally omitted – the database auto-generates it on INSERT
         Name = dto.Name,
         NameFr = dto.NameFr,
         NameEn = dto.NameEn,
-        Description = dto.Description,
+        DescriptionFr = dto.DescriptionFr,
         DescriptionEn = dto.DescriptionEn,
         Link = dto.Link,
     };

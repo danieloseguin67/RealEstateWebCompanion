@@ -47,7 +47,8 @@ public class UnitTypesController : ControllerBase
         var entity = await _db.UnitTypes.FindAsync(id);
         if (entity == null) return NotFound();
 
-        entity.UnitTypeName = dto.UnitTypeName;
+        entity.UnitTypeNameEn = dto.UnitTypeNameEn;
+        entity.UnitTypeNameFr = dto.UnitTypeNameFr;
         await _db.SaveChangesAsync();
         return NoContent();
     }
@@ -64,11 +65,15 @@ public class UnitTypesController : ControllerBase
 
     private static UnitTypeDto MapToDto(UnitType u) => new()
     {
-        UnitTypeName = u.UnitTypeName,
+        Id = u.Id,
+        UnitTypeNameEn = u.UnitTypeNameEn,
+        UnitTypeNameFr = u.UnitTypeNameFr,
     };
 
     private static UnitType MapToEntity(UnitTypeDto dto) => new()
     {
-        UnitTypeName = dto.UnitTypeName,
+        // Id intentionally omitted – the database auto-generates it on INSERT
+        UnitTypeNameEn = dto.UnitTypeNameEn,
+        UnitTypeNameFr = dto.UnitTypeNameFr,
     };
 }

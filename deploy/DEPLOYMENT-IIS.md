@@ -4,7 +4,7 @@ Deploys three applications on a single Windows Server instance:
 
 | Application | Description | Hostname |
 |---|---|---|
-| **WebCompanionAPI** | ASP.NET Core 9 REST API | `localhost:5000` (internal) |
+| **WebCompanionAPI** | ASP.NET Core 9 REST API | `localhost:6003` (internal) |
 | **WebCompanionApp** | Angular admin SPA | `realestatewebcompanion.seguin.dev` |
 | **Montreal4Rent** | Angular public SPA + PHP contact forms | `montreal4rent.com` |
 
@@ -31,9 +31,9 @@ Internet
            C:\inetpub\webcompanion-app\
            App Pool: WebCompanionAppPool (No Managed Code)
            ├── Angular static files (SPA, index.html fallback)
-           └── /api/*  →  ARR reverse proxy  →  localhost:5000
+           └── /api/*  →  ARR reverse proxy  →  localhost:6003
 
-localhost:5000 (not public)
+localhost:6003 (not public)
     IIS Site: WebCompanionAPI
     C:\inetpub\webcompanion-api\
     App Pool: WebCompanionApiPool (No Managed Code, ANCM in-process)
@@ -186,9 +186,9 @@ ALTER ROLE db_datawriter ADD MEMBER [IIS APPPOOL\WebCompanionApiPool];
 ### 4. Smoke test
 
 ```powershell
-Invoke-RestMethod http://localhost:5000/api/apartments   # WebAPI direct
+Invoke-RestMethod http://localhost:6003/api/apartments   # WebAPI direct
 Invoke-RestMethod http://localhost/api/apartments        # via ARR proxy
-Start-Process "http://localhost:5000/swagger"            # Swagger UI
+Start-Process "http://localhost:6003/swagger"            # Swagger UI
 Start-Process "http://localhost"                         # Angular admin app
 ```
 
@@ -473,7 +473,7 @@ Run from PowerShell on the server after all steps are complete.
 
 ```powershell
 # 1. WebAPI responds internally
-Invoke-RestMethod http://localhost:5000/api/apartments
+Invoke-RestMethod http://localhost:6003/api/apartments
 
 # 2. ARR proxy routes /api/* through the Angular app site
 Invoke-RestMethod http://realestatewebcompanion.seguin.dev/api/apartments
@@ -568,11 +568,11 @@ appsettings.Production.json on disk
 ### Swagger shows a blank/white page
 - Swagger is always enabled in this build (no environment check). If you get a blank page, the old DLL is likely still deployed.
 - Rebuild and redeploy: `cd deploy; .\build-all.ps1 -OutputRoot "C:\deploy\build"; .\iis-setup-local.bat`
-- Access Swagger at: **http://localhost:5000/swagger/index.html** (not `/swagger` — some browsers need the full path)
+- Access Swagger at: **http://localhost:6003/swagger/index.html** (not `/swagger` — some browsers need the full path)
 - Check the app pool is running: IIS Manager → Application Pools → WebCompanionApiPool → State = Started
 
 ### 502 Bad Gateway on `/api/*`
-- Confirm the WebCompanionAPI site is running: `Invoke-RestMethod http://localhost:5000/api/apartments`
+- Confirm the WebCompanionAPI site is running: `Invoke-RestMethod http://localhost:6003/api/apartments`
 - Confirm ARR is installed and the global proxy is enabled (IIS Manager → server node → Application Request Routing Cache → Server Proxy Settings → Enable proxy)
 - Check the Windows Event Log → Application for ANCM startup errors
 - Verify ANCM DLL exists: `Test-Path "C:\Program Files\IIS\Asp.Net Core Module\V2\aspnetcorev2.dll"` — if `False`, install the Hosting Bundle and run `iisreset`

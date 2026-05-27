@@ -1,14 +1,13 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, NgZone } from '@angular/core';
 import { AgGridAngular } from 'ag-grid-angular';
 import { ColDef, GridOptions } from 'ag-grid-community';
 import { SeoService } from '../../services/seo.service';
-import { GoogleDriveService } from '../../services/google-drive.service';
 import { SeoPage } from '../../models/data.models';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
 import { ApiService } from '../../services/api.service';
+import { from, firstValueFrom } from 'rxjs';
+import { concatMap, finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-seo-manager',
@@ -26,16 +25,34 @@ export class SeoManagerComponent implements OnInit {
   originalPage: SeoPage | null = null;
   changeFrequencyOptions = ['always', 'hourly', 'daily', 'weekly', 'monthly', 'yearly', 'never'];
   showHelp: boolean = false;
-  showImportInstructions: boolean = false;
-  showExportInstructions: boolean = false;
-  googleDriveFolderUrl: string | null = null;
+  savingChanges = false;
+  private dirtyIds = new Set<string>();
   
+  get hasPendingChanges(): boolean { return this.dirtyIds.size > 0; }
+  get pendingChangesCount(): number { return this.dirtyIds.size; }
+
   colDefs: ColDef[] = [
     { 
       headerName: 'Actions', 
-      width: 180, 
+      width: 200,
+      suppressSizeToFit: true,
       cellRenderer: (params: any) => {
-        return '<button class="edit-btn">Edit</button> <button class="delete-btn">Delete</button>';
+        const container = document.createElement('span');
+
+        const editBtn = document.createElement('button');
+        editBtn.textContent = 'Edit';
+        editBtn.className = 'edit-btn';
+        editBtn.addEventListener('click', () => this.ngZone.run(() => this.editRow(params.node)));
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.className = 'delete-btn';
+        deleteBtn.addEventListener('click', () => this.ngZone.run(() => this.deleteRow(params.node)));
+
+        container.appendChild(editBtn);
+        container.appendChild(document.createTextNode(' '));
+        container.appendChild(deleteBtn);
+        return container;
       },
       editable: false,
       filter: false,
@@ -85,46 +102,53 @@ export class SeoManagerComponent implements OnInit {
 
   constructor(
     private seoService: SeoService,
-    private googleDriveService: GoogleDriveService,
-    private http: HttpClient,
-    private apiService: ApiService
+    private apiService: ApiService,
+    private ngZone: NgZone
   ) {}
 
-  async ngOnInit(): Promise<void> {
-    this.seoService.seoPages$.subscribe(data => {
-      this.rowData = data;
-    });
+  ngOnInit(): void {
     this.websiteUrl = this.seoService.getWebsiteUrl();
-    
-    // Load Google Drive folder URL from preferences
-    try {
-      const preferences = await firstValueFrom(this.apiService.getPreferences());
-      if (preferences?.googledrive) {
-        this.googleDriveFolderUrl = preferences.googledrive;
-      }
-    } catch (error) {
-      console.error('Failed to load preferences:', error);
-    }
+    this.apiService.getSeoPages().subscribe({
+      next: (data) => {
+        this.rowData = data;
+        this.gridApi?.setGridOption('rowData', this.rowData);
+        this.seoService.updateSeoPages(this.rowData);
+      },
+      error: (err) => console.error('Failed to load SEO pages:', err)
+    });
   }
 
   onGridReady(params: any): void {
     this.gridApi = params.api;
     params.api.sizeColumnsToFit();
-    
-    params.api.addEventListener('cellClicked', (event: any) => {
-      if (event.event.target.classList.contains('delete-btn')) {
-        this.deleteRow(event.node);
-      } else if (event.event.target.classList.contains('edit-btn')) {
-        this.editRow(event.node);
-      }
-    });
   }
 
   onCellValueChanged(event: any): void {
-    // Update lastModified timestamp
-    const updatedRow = event.data;
+    const updatedRow = event.data as SeoPage;
     updatedRow.lastModified = new Date().toISOString().split('T')[0];
-    this.saveData();
+    this.seoService.updateSeoPages(this.rowData);
+    if (updatedRow?.id) this.dirtyIds.add(updatedRow.id);
+  }
+
+  saveAllChanges(): void {
+    if (this.savingChanges || !this.hasPendingChanges) return;
+    const toSave = this.rowData.filter(r => r?.id && this.dirtyIds.has(r.id));
+    if (toSave.length === 0) { this.dirtyIds.clear(); return; }
+    this.savingChanges = true;
+    from(toSave).pipe(
+      concatMap(r => this.apiService.updateSeoPage(r.id, r)),
+      finalize(() => { this.savingChanges = false; })
+    ).subscribe({
+      next: () => {},
+      complete: () => {
+        this.dirtyIds.clear();
+        this.seoService.updateSeoPages(this.rowData);
+      },
+      error: (err) => {
+        console.error('Failed to save SEO page changes:', err);
+        alert('Failed to save changes. Please try again.');
+      }
+    });
   }
 
   addRow(): void {
@@ -141,7 +165,16 @@ export class SeoManagerComponent implements OnInit {
     };
     this.rowData = [newRow, ...this.rowData];
     this.gridApi?.setGridOption('rowData', this.rowData);
-    this.saveData();
+    this.seoService.updateSeoPages(this.rowData);
+    this.apiService.createSeoPage(newRow).subscribe({
+      next: (created) => {
+        const idx = this.rowData.findIndex(r => r.id === newRow.id);
+        if (idx !== -1) this.rowData[idx] = created;
+        this.gridApi?.setGridOption('rowData', this.rowData);
+        this.seoService.updateSeoPages(this.rowData);
+      },
+      error: (err) => console.error('Failed to create SEO page:', err)
+    });
   }
 
   editRow(node: any): void {
@@ -159,7 +192,10 @@ export class SeoManagerComponent implements OnInit {
       if (index !== -1) {
         this.rowData[index] = { ...this.editingPage };
         this.gridApi?.setGridOption('rowData', this.rowData);
-        this.saveData();
+        this.seoService.updateSeoPages(this.rowData);
+        this.apiService.updateSeoPage(this.editingPage!.id, { ...this.editingPage! }).subscribe({
+          error: (err) => console.error('Failed to update SEO page:', err)
+        });
       }
       this.cancelEdit();
     }
@@ -181,9 +217,13 @@ export class SeoManagerComponent implements OnInit {
 
   deleteRow(node: any): void {
     if (confirm('Are you sure you want to delete this SEO page?')) {
-      this.rowData = this.rowData.filter(row => row.id !== node.data.id);
+      const pageId = node.data.id;
+      this.rowData = this.rowData.filter(row => row.id !== pageId);
       this.gridApi?.setGridOption('rowData', this.rowData);
-      this.saveData();
+      this.seoService.updateSeoPages(this.rowData);
+      this.apiService.deleteSeoPage(pageId).subscribe({
+        error: (err) => console.error('Failed to delete SEO page:', err)
+      });
     }
   }
 
@@ -191,69 +231,9 @@ export class SeoManagerComponent implements OnInit {
     this.seoService.updateSeoPages(this.rowData);
   }
 
-  exportData(): void {
-    // Export to local download
-    this.googleDriveService.exportData({ seoPages: this.rowData });
-  }
-
-  openGoogleDriveToUpload(): void {
-    if (this.googleDriveFolderUrl) {
-      alert('🚀 Upload to SeguinDev Drive\n\nThe Google Drive folder will open in a new tab.\n\nTo upload your exported file:\n1. Locate the exported "seomanager.json" in your Downloads\n2. Drag and drop it into the Google Drive folder OR\n3. Right-click in the folder and select "File upload"');
-      window.open(this.googleDriveFolderUrl, '_blank');
-    } else {
-      alert('Google Drive folder not configured in preferences.json');
-    }
-  }
-
-  quickImportFromSeguinDev(): void {
-    if (!this.googleDriveFolderUrl) {
-      alert('Google Drive folder not configured in preferences.json');
-      return;
-    }
-
-    // Show instructions first
-    const message = `📥 Get File from SeguinDev Drive\n\n` +
-      `Follow these 3 simple steps:\n\n` +
-      `1️⃣ SeguinDev Google Drive will open in a new tab\n` +
-      `   • Look for the "seomanager.json" file\n\n` +
-      `2️⃣ Download the file to your computer\n` +
-      `   • Right-click on "seomanager.json"\n` +
-      `   • Select "Download"\n` +
-      `   • File will save to your Downloads folder\n\n` +
-      `3️⃣ Click the "📋 Import to SEO Manager" button\n` +
-      `   • Use the button next to this one\n` +
-      `   • Select the downloaded file from your Downloads\n` +
-      `   • Data will import automatically!\n\n` +
-      `Click OK to open SeguinDev Google Drive`;
-
-    if (confirm(message)) {
-      window.open(this.googleDriveFolderUrl, '_blank');
-    }
-  }
-
-  openImportInstructions(): void {
-    this.showImportInstructions = true;
-  }
-
-  closeImportInstructions(): void {
-    this.showImportInstructions = false;
-  }
-
-  openExportInstructions(): void {
-    this.showExportInstructions = true;
-  }
-
-  closeExportInstructions(): void {
-    this.showExportInstructions = false;
-  }
-
-  openGoogleDriveFolder(): void {
-    if (this.googleDriveFolderUrl) {
-      window.open(this.googleDriveFolderUrl, '_blank');
-    } else {
-      alert('Google Drive folder not configured in preferences.json');
-    }
-  }
+  // Note: exportData, importData, openGoogleDriveToUpload, quickImportFromSeguinDev,
+  // openImportInstructions, closeImportInstructions, openExportInstructions,
+  // closeExportInstructions, openGoogleDriveFolder methods removed — data now persisted via API.
 
   clearAllRecords(): void {
     if (this.rowData.length === 0) {
@@ -262,40 +242,16 @@ export class SeoManagerComponent implements OnInit {
     }
     
     if (confirm(`Are you sure you want to delete all ${this.rowData.length} SEO record(s)?\n\nThis action cannot be undone.`)) {
+      const toDelete = [...this.rowData];
       this.rowData = [];
       this.gridApi?.setGridOption('rowData', this.rowData);
-      this.saveData();
+      this.seoService.updateSeoPages(this.rowData);
+      toDelete.forEach(page => {
+        this.apiService.deleteSeoPage(page.id).subscribe({
+          error: (err) => console.error('Failed to delete SEO page:', err)
+        });
+      });
       alert('All SEO records have been cleared.');
-    }
-  }
-
-  async importData(event: Event): Promise<void> {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      const file = input.files[0];
-      
-      const text = await file.text();
-      try {
-        const data = JSON.parse(text);
-        // Handle both formats: { seoPages: [...] } or just [...]
-        if (data.seoPages && Array.isArray(data.seoPages)) {
-          this.rowData = data.seoPages;
-          this.gridApi?.setGridOption('rowData', this.rowData);
-          this.saveData();
-          alert(`Successfully imported ${data.seoPages.length} SEO page(s) from local file.`);
-        } else if (Array.isArray(data)) {
-          this.rowData = data;
-          this.gridApi?.setGridOption('rowData', this.rowData);
-          this.saveData();
-          alert(`Successfully imported ${data.length} SEO page(s) from local file.`);
-        } else {
-          alert('Invalid JSON file: Must be an array of SEO pages or an object with seoPages property');
-        }
-      } catch (error) {
-        alert('Invalid JSON file: Unable to parse');
-      }
-      // Reset the file input
-      input.value = '';
     }
   }
 
@@ -400,7 +356,16 @@ export class SeoManagerComponent implements OnInit {
 
     this.rowData = [...uniqueNewPages, ...this.rowData];
     this.gridApi?.setGridOption('rowData', this.rowData);
-    this.saveData();
+    this.seoService.updateSeoPages(this.rowData);
+    uniqueNewPages.forEach(page => {
+      this.apiService.createSeoPage(page).subscribe({
+        next: (created) => {
+          const idx = this.rowData.findIndex(r => r.id === page.id);
+          if (idx !== -1) this.rowData[idx] = created;
+        },
+        error: (err) => console.error('Failed to create SEO page:', err)
+      });
+    });
     
     alert(`Successfully imported ${uniqueNewPages.length} URL(s) with recommended SEO values.`);
   }
@@ -425,7 +390,7 @@ export class SeoManagerComponent implements OnInit {
     const discoveredPages = await this.discoverWebsitePages(cleanBaseUrl);
     
     if (discoveredPages.length === 0) {
-      const retry = confirm('Could not discover pages automatically due to CORS restrictions.\n\nWould you like to manually enter your page URLs instead?\n\nClick OK to use Manual Import, or Cancel to exit.');
+      const retry = confirm('Could not discover pages automatically.\n\nWould you like to manually enter your page URLs instead?\n\nClick OK to use Manual Import, or Cancel to exit.');
       if (retry) {
         this.manualImportUrls();
       }
@@ -454,40 +419,48 @@ export class SeoManagerComponent implements OnInit {
     // Add new pages to the beginning of the list
     this.rowData = [...uniqueNewPages, ...this.rowData];
     this.gridApi?.setGridOption('rowData', this.rowData);
-    this.saveData();
+    this.seoService.updateSeoPages(this.rowData);
+    uniqueNewPages.forEach(page => {
+      this.apiService.createSeoPage(page).subscribe({
+        next: (created) => {
+          const idx = this.rowData.findIndex(r => r.id === page.id);
+          if (idx !== -1) this.rowData[idx] = created;
+        },
+        error: (err) => console.error('Failed to create SEO page:', err)
+      });
+    });
     
     alert(`Successfully added ${uniqueNewPages.length} SEO record(s) from the website.`);
   }
 
   private async discoverWebsitePages(baseUrl: string): Promise<SeoPage[]> {
-    const pages: SeoPage[] = [];
     const today = new Date().toISOString().split('T')[0];
+    const urlObj = new URL(baseUrl);
+    const siteName = this.extractDomainName(urlObj.hostname);
 
     try {
-      // First, try to fetch and parse the sitemap.xml
-      const sitemapUrl = `${baseUrl}/sitemap.xml`;
-      const sitemapPages = await this.fetchSitemap(sitemapUrl);
-      
-      if (sitemapPages.length > 0) {
-        return sitemapPages;
-      }
-    } catch (error) {
-      console.log('Could not fetch sitemap, trying homepage...');
-    }
+      const paths = await firstValueFrom(this.apiService.discoverPages(baseUrl));
+      if (!paths || paths.length === 0) return [];
 
-    try {
-      // If sitemap fails, try to fetch and parse the homepage
-      const homepagePages = await this.fetchHomepage(baseUrl);
-      
-      if (homepagePages.length > 0) {
-        return homepagePages;
-      }
+      return paths.map(path => {
+        const pageName = this.extractPageNameFromPath(path);
+        const rec = this.getPageRecommendations(path, pageName, siteName);
+        return {
+          id: this.generateId(),
+          pageName: rec.pageName,
+          pageUrl: path,
+          title: rec.title,
+          metaName: 'description',
+          metaDescription: rec.metaDescription,
+          lastModified: today,
+          changeFrequency: rec.changeFrequency,
+          priority: rec.priority
+        } as SeoPage;
+      });
     } catch (error) {
-      console.log('Could not fetch homepage:', error);
+      console.log('Backend discovery failed:', error);
+      return [];
     }
-
-    // If both methods fail due to CORS, provide fallback with common pages
-    return this.generateFallbackPages(baseUrl);
   }
 
   private async fetchSitemap(sitemapUrl: string): Promise<SeoPage[]> {

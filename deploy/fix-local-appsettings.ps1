@@ -38,7 +38,7 @@ Write-Host "Waiting for API to start..." -ForegroundColor Cyan
 Start-Sleep -Seconds 4
 Write-Host "Testing API..." -ForegroundColor Cyan
 try {
-    $resp = Invoke-WebRequest -Uri "http://localhost:5000/api/apartments" -UseBasicParsing -TimeoutSec 10
+    $resp = Invoke-WebRequest -Uri "http://localhost:6003/api/apartments" -UseBasicParsing -TimeoutSec 10
     Write-Host "[OK] HTTP $($resp.StatusCode)" -ForegroundColor Green
     $resp.Content | ConvertFrom-Json | Select-Object -First 3 | Format-List
 } catch {

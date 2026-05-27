@@ -151,14 +151,20 @@ public class FeatureDto
 
 public class UnitTypeDto
 {
-    [JsonPropertyName("unit_type_name")]
-    public string UnitTypeName { get; set; } = string.Empty;
+    [JsonPropertyName("id")]
+    public int Id { get; set; }
+
+    [JsonPropertyName("unitTypeNameEn")]
+    public string UnitTypeNameEn { get; set; } = string.Empty;
+
+    [JsonPropertyName("unitTypeNameFr")]
+    public string UnitTypeNameFr { get; set; } = string.Empty;
 }
 
 public class AreaDto
 {
     [JsonPropertyName("id")]
-    public string Id { get; set; } = string.Empty;
+    public int Id { get; set; }
 
     [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;
@@ -169,8 +175,8 @@ public class AreaDto
     [JsonPropertyName("nameEn")]
     public string NameEn { get; set; } = string.Empty;
 
-    [JsonPropertyName("description")]
-    public string Description { get; set; } = string.Empty;
+    [JsonPropertyName("descriptionFr")]
+    public string DescriptionFr { get; set; } = string.Empty;
 
     [JsonPropertyName("descriptionEn")]
     public string DescriptionEn { get; set; } = string.Empty;

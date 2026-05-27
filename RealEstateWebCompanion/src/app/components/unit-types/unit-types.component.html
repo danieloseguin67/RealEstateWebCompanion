@@ -2,38 +2,48 @@
   <div class="header">
     <h2>Unit Types Management</h2>
     <div class="actions">
+      <button class="btn btn-primary" (click)="saveAllChanges()" [disabled]="!hasPendingChanges || savingChanges">
+        Save{{ pendingChangesCount ? ' (' + pendingChangesCount + ')' : '' }}
+      </button>
       <button class="btn btn-success" (click)="addRow()">
         + Add Unit Type
       </button>
-      @if (googleDriveFolderUrl) {
-        <div class="button-group">
-          <button class="btn btn-primary" (click)="exportData()" title="Export Unit Types data to local file">
-            📤 Export from Unit Types Manager
-          </button>
-          <button class="btn btn-success" (click)="openGoogleDriveToUpload()" title="Open Google Drive to upload exported file">
-            ⬆️ Put into SeguinDev Drive
-          </button>
-        </div>
-        <div class="button-group">
-          <button class="btn btn-primary" (click)="quickImportFromSeguinDev()" title="Download Unit Types file from SeguinDev Google Drive">
-            📥 Get from SeguinDev Drive
-          </button>
-          <label class="btn btn-secondary" title="Import Unit Types data from local file">
-            📋 Import to Unit Types Manager
-            <input type="file" accept=".json" (change)="importData($event)" style="display: none;">
-          </label>
-        </div>
-      } @else {
-        <button class="btn btn-primary" (click)="exportData()">
-          Export Unit Types (JSON)
-        </button>
-        <label class="btn btn-secondary">
-          Import Unit Types (JSON)
-          <input type="file" accept=".json" (change)="importData($event)" style="display: none;">
-        </label>
-      }
     </div>
   </div>
+
+  @if (errorMessage) {
+    <div class="error-banner" role="alert">
+      <span>{{ errorMessage }}</span>
+      <button class="error-dismiss" (click)="clearError()" aria-label="Dismiss">&times;</button>
+    </div>
+  }
+
+  @if (isEditing && editingUnitType) {
+    <div class="edit-form-overlay">
+      <div class="edit-form">
+        <h3>Edit Unit Type</h3>
+        <form>
+          <div class="form-group">
+            <label for="id">ID:</label>
+            <input type="text" id="id" [(ngModel)]="editingUnitType.id" name="id" class="form-control" readonly>
+          </div>
+          <div class="form-group">
+            <label for="unitTypeNameEn">Unit Type (EN):</label>
+            <input type="text" id="unitTypeNameEn" [(ngModel)]="editingUnitType.unitTypeNameEn" name="unitTypeNameEn" class="form-control">
+          </div>
+          <div class="form-group">
+            <label for="unitTypeNameFr">Unit Type (FR):</label>
+            <input type="text" id="unitTypeNameFr" [(ngModel)]="editingUnitType.unitTypeNameFr" name="unitTypeNameFr" class="form-control">
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn btn-primary" (click)="saveEdit()">Save</button>
+            <button type="button" class="btn btn-secondary" (click)="cancelEdit()">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
   <ag-grid-angular
     style="width: 100%; height: 500px;"
     class="ag-theme-alpine"

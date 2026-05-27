@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, NgZone, OnInit } from '@angular/core';
 import { AgGridAngular } from 'ag-grid-angular';
 import { ColDef, GridOptions } from 'ag-grid-community';
 import { Area } from '../../models/data.models';
@@ -6,7 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ApiService } from '../../services/api.service';
 import { from } from 'rxjs';
-import { concatMap, finalize } from 'rxjs/operators';
+import { concatMap, finalize, tap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-areas',
@@ -22,24 +22,44 @@ export class AreasComponent implements OnInit {
   originalArea: Area | null = null;
   loading = false;
   savingChanges = false;
-  private dirtyAreaIds = new Set<string>();
+  errorMessage: string | null = null;
+  private dirtyAreaIds = new Set<number>();
+  private newAreaIds = new Set<number>();
+  private nextTempId = 0;
   
   colDefs: ColDef[] = [
-    { 
-      headerName: 'Actions', 
-      width: 180, 
+    {
+      headerName: 'Actions',
+      width: 200,
+      suppressSizeToFit: true,
       cellRenderer: (params: any) => {
-        return '<button class="edit-btn">Edit</button> <button class="delete-btn">Delete</button>';
+        const container = document.createElement('span');
+
+        const editBtn = document.createElement('button');
+        editBtn.textContent = 'Edit';
+        editBtn.className = 'edit-btn';
+        editBtn.addEventListener('click', () => this.ngZone.run(() => this.editRow(params.node)));
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.className = 'delete-btn';
+        deleteBtn.addEventListener('click', () => this.ngZone.run(() => this.deleteRow(params.node)));
+
+        container.appendChild(editBtn);
+        container.appendChild(document.createTextNode(' '));
+        container.appendChild(deleteBtn);
+        return container;
       },
       editable: false,
       filter: false,
       sortable: false
     },
-    { field: 'id', headerName: 'ID', width: 150, filter: 'agTextColumnFilter', sortable: true, editable: true },
+    { field: 'id', headerName: 'ID', width: 150, filter: 'agTextColumnFilter', sortable: true, editable: false,
+      valueFormatter: (p: any) => p.value != null && p.value < 0 ? 'New' : p.value },
     { field: 'name', headerName: 'Name', width: 180, filter: 'agTextColumnFilter', sortable: true, editable: true },
     { field: 'nameFr', headerName: 'Name (FR)', width: 180, filter: 'agTextColumnFilter', sortable: true, editable: true },
     { field: 'nameEn', headerName: 'Name (EN)', width: 180, filter: 'agTextColumnFilter', sortable: true, editable: true },
-    { field: 'description', headerName: 'Description (FR)', width: 300, filter: 'agTextColumnFilter', sortable: true, editable: true },
+    { field: 'descriptionFr', headerName: 'Description (FR)', width: 300, filter: 'agTextColumnFilter', sortable: true, editable: true },
     { field: 'descriptionEn', headerName: 'Description (EN)', width: 300, filter: 'agTextColumnFilter', sortable: true, editable: true },
     { field: 'link', headerName: 'Link', width: 200, filter: 'agTextColumnFilter', sortable: true, editable: true }
   ];
@@ -59,7 +79,8 @@ export class AreasComponent implements OnInit {
   };
 
   constructor(
-    private apiService: ApiService
+    private apiService: ApiService,
+    private ngZone: NgZone
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -73,6 +94,7 @@ export class AreasComponent implements OnInit {
         this.rowData = areas;
         this.gridApi?.setGridOption('rowData', this.rowData);
         this.dirtyAreaIds.clear();
+        this.newAreaIds.clear();
         this.loading = false;
       },
       error: (error) => {
@@ -80,10 +102,15 @@ export class AreasComponent implements OnInit {
         this.rowData = [];
         this.gridApi?.setGridOption('rowData', this.rowData);
         this.dirtyAreaIds.clear();
+        this.newAreaIds.clear();
         this.loading = false;
-        alert('Failed to load Areas from API. Please ensure the web API is running.');
+        this.errorMessage = 'Failed to load Areas from API. Please ensure the web API is running - ' + error.message;
       }
     });
+  }
+
+  clearError(): void {
+    this.errorMessage = null;
   }
 
   get hasPendingChanges(): boolean {
@@ -97,19 +124,11 @@ export class AreasComponent implements OnInit {
   onGridReady(params: any): void {
     this.gridApi = params.api;
     params.api.sizeColumnsToFit();
-    
-    params.api.addEventListener('cellClicked', (event: any) => {
-      if (event.event.target.classList.contains('delete-btn')) {
-        this.deleteRow(event.node);
-      } else if (event.event.target.classList.contains('edit-btn')) {
-        this.editRow(event.node);
-      }
-    });
   }
 
   onCellValueChanged(event: any): void {
     const area = event.data as Area;
-    if (!area?.id) return;
+    if (area?.id == null) return;
     this.dirtyAreaIds.add(area.id);
   }
 
@@ -124,7 +143,18 @@ export class AreasComponent implements OnInit {
 
     this.savingChanges = true;
     from(areasToSave).pipe(
-      concatMap((area) => this.apiService.updateArea(area.id, area)),
+      concatMap((area) => {
+        if (this.newAreaIds.has(area.id)) {
+          return this.apiService.createArea(area).pipe(
+            tap((created) => {
+              const idx = this.rowData.findIndex(r => r.id === area.id);
+              if (idx !== -1) this.rowData[idx] = created;
+              this.newAreaIds.delete(area.id);
+            })
+          );
+        }
+        return this.apiService.updateArea(area.id, area);
+      }),
       finalize(() => {
         this.savingChanges = false;
       })
@@ -132,47 +162,38 @@ export class AreasComponent implements OnInit {
       next: () => {},
       complete: () => {
         this.dirtyAreaIds.clear();
+        this.gridApi?.setGridOption('rowData', this.rowData);
       },
       error: (error) => {
         console.error('Failed to save area changes:', error);
-        alert('Failed to save one or more changes. Reloading latest data from API.');
+        this.errorMessage = 'Failed to save one or more changes. Reloading latest data from API.';
         this.loadAreas();
       }
     });
   }
 
   addRow(): void {
-    const timestamp = Date.now();
-    const newId = `area-${timestamp}`;
+    const tempId = --this.nextTempId;
     const newRow: Area = {
-      id: newId,
+      id: tempId,
       name: '',
       nameFr: '',
       nameEn: '',
-      description: '',
+      descriptionFr: '',
       descriptionEn: '',
       link: ''
     };
 
-    // Optimistic UI insert; rollback on failure.
     this.rowData = [newRow, ...this.rowData];
     this.gridApi?.setGridOption('rowData', this.rowData);
+    this.newAreaIds.add(tempId);
+    this.dirtyAreaIds.add(tempId);
 
-    this.apiService.createArea(newRow).subscribe({
-      next: (created) => {
-        const index = this.rowData.findIndex(r => r.id === newId);
-        if (index !== -1) {
-          this.rowData[index] = created;
-          this.gridApi?.setGridOption('rowData', this.rowData);
-        }
-      },
-      error: (error) => {
-        console.error('Failed to create area:', error);
-        this.rowData = this.rowData.filter(r => r.id !== newId);
-        this.gridApi?.setGridOption('rowData', this.rowData);
-        alert('Failed to add Area. Please try again.');
-      }
-    });
+    // Navigate to first page and begin editing the Name cell
+    this.gridApi?.paginationGoToFirstPage();
+    setTimeout(() => {
+      this.gridApi?.startEditingCell({ rowIndex: 0, colKey: 'name' });
+    }, 50);
   }
 
   editRow(node: any): void {
@@ -195,7 +216,7 @@ export class AreasComponent implements OnInit {
           },
           error: (error) => {
             console.error('Failed to update area:', error);
-            alert('Failed to save Area changes. Reloading latest data from API.');
+            this.errorMessage = 'Failed to save Area changes. Reloading latest data from API.';
             this.loadAreas();
           }
         });
@@ -211,8 +232,17 @@ export class AreasComponent implements OnInit {
   }
 
   deleteRow(node: any): void {
-    const id = node?.data?.id as string;
-    if (!id) return;
+    const id = node?.data?.id as number;
+    if (id == null) return;
+
+    // New unsaved row — remove locally without API call
+    if (this.newAreaIds.has(id)) {
+      this.rowData = this.rowData.filter(row => row.id !== id);
+      this.gridApi?.setGridOption('rowData', this.rowData);
+      this.newAreaIds.delete(id);
+      this.dirtyAreaIds.delete(id);
+      return;
+    }
 
     if (!confirm('Are you sure you want to delete this area?')) {
       return;
@@ -228,7 +258,7 @@ export class AreasComponent implements OnInit {
         console.error('Failed to delete area:', error);
         this.rowData = previous;
         this.gridApi?.setGridOption('rowData', this.rowData);
-        alert('Failed to delete Area. Please try again.');
+        this.errorMessage = 'Failed to delete Area. Please try again.';
       }
     });
   }

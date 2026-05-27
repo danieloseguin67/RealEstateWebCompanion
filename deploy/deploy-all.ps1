@@ -154,8 +154,8 @@ if (-not $isAdmin) {
     if ($SkipDatabaseInit)      { $fwdArgs += " -SkipDatabaseInit" }
     if ($SkipIisFeatures)       { $fwdArgs += " -SkipIisFeatures" }
 
-    Start-Process powershell -Verb RunAs -ArgumentList $fwdArgs -Wait
-    exit $LASTEXITCODE
+    $proc = Start-Process powershell -Verb RunAs -ArgumentList $fwdArgs -Wait -PassThru
+    exit ($proc.ExitCode)
 }
 
 # ---------------------------------------------------------------------------
@@ -228,6 +228,23 @@ if ($Environment -eq "local") {
 
     & (Join-Path $scriptDir "iis-setup.ps1") @iisArgs
 
+    # Patch CORS origins for local development (iis-setup.ps1 skips DB-init so
+    # it never writes appsettings.Production.json; the robocopy'd file only has
+    # the production domains which block localhost browser requests).
+    if (-not $SkipWebApi) {
+        $localApiSettings = "C:\inetpub\webcompanion-api\appsettings.Production.json"
+        if (Test-Path $localApiSettings) {
+            $json = Get-Content $localApiSettings -Raw | ConvertFrom-Json
+            $json.AllowedCorsOrigins = @("http://localhost", "http://localhost:4200", "http://localhost:6001")
+            $json | ConvertTo-Json -Depth 5 | Set-Content $localApiSettings -Encoding UTF8
+            Write-Ok "CORS patched: allowed http://localhost, http://localhost:4200, http://localhost:6001"
+            if (Test-Path "IIS:\AppPools\WebCompanionApiPool") {
+                Restart-WebAppPool -Name "WebCompanionApiPool"
+                Write-Ok "WebCompanionApiPool recycled."
+            }
+        }
+    }
+
 } else {
     # ----- Production -----
     $iisArgs = @{
@@ -257,7 +274,7 @@ Write-Host "$('=' * 70)" -ForegroundColor Cyan
 if ($Environment -eq "local") {
     Write-Host @"
 
-  WebCompanionAPI  -> http://localhost:5000
+  WebCompanionAPI  -> http://localhost:6003
   WebCompanionApp  -> http://localhost
   Montreal4Rent    -> http://montreal4rent.localhost  (if not skipped)
 
@@ -268,7 +285,7 @@ if ($Environment -eq "local") {
 } else {
     Write-Host @"
 
-  WebCompanionAPI  -> http://localhost:5000  (internal / ARR proxy)
+  WebCompanionAPI  -> http://localhost:6003  (internal / ARR proxy)
   WebCompanionApp  -> https://$WebCompanionAppHostname
   Montreal4Rent    -> https://$Montreal4RentHostname
 

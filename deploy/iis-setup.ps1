@@ -9,7 +9,7 @@
     Configures the following on a fresh Windows Server 2022:
       1. IIS features (Static Content, URL Rewrite, ARR, CGI/FastCGI, ANCM)
       2. SQL Server database initialisation
-      3. WebCompanionAPI      — IIS site on localhost:5000 (ASP.NET Core 9 via ANCM, internal only)
+      3. WebCompanionAPI      — IIS site on localhost:6003 (ASP.NET Core 9 via ANCM, internal only)
       4. WebCompanionApp      — IIS site on port 80/443 (Angular SPA + ARR proxy to /api/*)
       5. Montreal4Rent        — IIS site on port 80/443 (Angular SPA + PHP FastCGI contact forms)
 
@@ -131,13 +131,13 @@ function Ensure-AppPool([string]$name, [string]$envVarName = "", [string]$envVar
 
 # Idempotent IIS Site creation
 function Ensure-Site([string]$name, [string]$physicalPath, [string]$appPool, [string]$binding) {
+    # Parse binding string "ip:port:hostheader" into individual parts
+    $parts      = $binding -split ":"
+    $ipAddress  = $parts[0]
+    $port       = [int]$parts[1]
+    $hostHeader = if ($parts.Count -gt 2) { $parts[2] } else { "" }
+
     if (-not (Test-Path "IIS:\Sites\$name")) {
-        # Parse binding string "ip:port:hostheader" into individual params
-        # because -BindingInformation is not available on all WebAdministration versions
-        $parts      = $binding -split ":"
-        $ipAddress  = $parts[0]
-        $port       = [int]$parts[1]
-        $hostHeader = if ($parts.Count -gt 2) { $parts[2] } else { "" }
         New-Website -Name $name `
                     -PhysicalPath $physicalPath `
                     -ApplicationPool $appPool `
@@ -148,6 +148,14 @@ function Ensure-Site([string]$name, [string]$physicalPath, [string]$appPool, [st
     } else {
         Set-ItemProperty "IIS:\Sites\$name" -Name physicalPath -Value $physicalPath
         Set-ItemProperty "IIS:\Sites\$name" -Name applicationPool -Value $appPool
+
+        # Ensure the desired binding exists (add it if missing)
+        $bindingInfo = "$ipAddress`:$port`:$hostHeader"
+        $existingBinding = Get-WebBinding -Name $name | Where-Object { $_.bindingInformation -eq $bindingInfo }
+        if (-not $existingBinding) {
+            New-WebBinding -Name $name -Protocol "http" -IPAddress $ipAddress -Port $port -HostHeader $hostHeader
+            Write-Ok "Added binding to IIS Site: $name  ($binding)"
+        }
         Write-Ok "Updated IIS Site: $name"
     }
 }
@@ -517,7 +525,7 @@ if (-not $SkipMontreal4Rent) {
 Write-Step "Phase 6: Creating IIS Sites"
 
 #
-# Site 1: WebCompanionAPI — internal only, bound to localhost:5000
+# Site 1: WebCompanionAPI — internal only, bound to localhost:6003
 # ASP.NET Core Module (ANCM) hosts the .NET process in-process.
 # NOT publicly accessible; the WebCompanionApp ARR proxy calls it.
 #
@@ -525,7 +533,7 @@ Ensure-Site `
     -name "WebCompanionAPI" `
     -physicalPath $apiDest `
     -appPool "WebCompanionApiPool" `
-    -binding "*:5000:localhost"
+    -binding "*:6003:localhost"
 
 #
 # Site 2: WebCompanionApp — Angular admin SPA + ARR proxy to /api/*
@@ -613,7 +621,7 @@ Write-Host ("=" * 70) -ForegroundColor Cyan
 Write-Host @"
 
   Sites deployed:
-    WebCompanionAPI  ->  http://localhost:5000          (internal only)
+    WebCompanionAPI  ->  http://localhost:6003          (internal only)
     WebCompanionApp  ->  http://$WebCompanionAppHostname
     Montreal4Rent    ->  http://$Montreal4RentHostname
                          http://$Montreal4RentHostnameWww
@@ -633,7 +641,7 @@ Write-Host @"
        Test with: http://$Montreal4RentHostname/php/test-php-config.php
 
     3. Smoke-test the API
-         Invoke-RestMethod http://localhost:5000/api/apartments
+         Invoke-RestMethod http://localhost:6003/api/apartments
          Invoke-RestMethod http://$WebCompanionAppHostname/api/apartments
 
     4. Smoke-test Angular SPA routing (deep links must return index.html):

@@ -4,12 +4,11 @@ import { ColDef, GridOptions } from 'ag-grid-community';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { DataService } from '../../services/data.service';
-import { GoogleDriveService } from '../../services/google-drive.service';
 import { AuthService } from '../../services/auth.service';
 import { ApiService } from '../../services/api.service';
-import { Apartment, ApartmentImage, Toggle } from '../../models/data.models';
-import { HttpClient } from '@angular/common/http';
-import { catchError, finalize, forkJoin, of, switchMap, throwError } from 'rxjs';
+import { Apartment, Toggle } from '../../models/data.models';
+import { from } from 'rxjs';
+import { concatMap, finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-listings',
@@ -23,28 +22,37 @@ export class ListingsComponent implements OnInit {
   
   // Edit modal properties
   showEditModal = false;
+  savingChanges = false;
+  private dirtyApartmentIds = new Set<string>();
   editingApartment: Apartment | null = null;
   activeTab: 'basic' | 'details' | 'images' = 'basic';
   availableFeatures: Toggle[] = [];
   availableAreas: string[] = [];
   availableUnitTypes: string[] = [];
   newImageUrl = '';
-  selectedFiles: FileList | null = null;
   editingImageIndex: number | null = null;
   editingImageName = '';
-  apartmentImages: ApartmentImage[] = [];
-  loadingImages = false;
-  creatingImage = false;
-  updatingImage = false;
-  deletingImageId: number | null = null;
   isDragOver = false;
-  apartmentFeatures: Toggle[] = [];
-  loadingFeatures = false;
   
+  get hasPendingChanges(): boolean {
+    return this.dirtyApartmentIds.size > 0;
+  }
+
+  get pendingChangesCount(): number {
+    return this.dirtyApartmentIds.size;
+  }
+
   // Check if current user is daniel.seguin
   get isDanielSeguin(): boolean {
     const user = this.authService.getCurrentUser();
     return user?.userId?.toLowerCase() === 'daniel.seguin';
+  }
+
+  // Features resolved from feature_ids in the apartment DTO + loaded availableFeatures list
+  get selectedFeatures(): Toggle[] {
+    if (!this.editingApartment) return [];
+    const ids = this.editingApartment.feature_ids ?? [];
+    return this.availableFeatures.filter(f => ids.includes(f.id));
   }
   
   colDefs: ColDef[] = [
@@ -61,9 +69,25 @@ export class ListingsComponent implements OnInit {
     },
     { 
       headerName: 'Actions', 
-      width: 300, 
+      width: 200,
+      suppressSizeToFit: true,
       cellRenderer: (params: any) => {
-        return '<button class="edit-btn">Edit</button> <button class="remove-btn">Remove</button>';
+        const container = document.createElement('span');
+
+        const editBtn = document.createElement('button');
+        editBtn.textContent = 'Edit';
+        editBtn.className = 'edit-btn';
+        editBtn.addEventListener('click', () => this.editRow(params.node));
+
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = 'Remove';
+        removeBtn.className = 'remove-btn';
+        removeBtn.addEventListener('click', () => this.removeRow(params.node));
+
+        container.appendChild(editBtn);
+        container.appendChild(document.createTextNode(' '));
+        container.appendChild(removeBtn);
+        return container;
       },
       editable: false,
       filter: false,
@@ -166,13 +190,14 @@ export class ListingsComponent implements OnInit {
 
   constructor(
     private dataService: DataService,
-    private googleDriveService: GoogleDriveService,
-    private http: HttpClient,
     private authService: AuthService,
     private apiService: ApiService
   ) {}
 
   async ngOnInit(): Promise<void> {
+    // Always load fresh data from the API (cache is bypassed in DataService)
+    this.dataService.loadApartments();
+
     this.dataService.apartments$.subscribe(data => {
       this.rowData = data;
     });
@@ -189,25 +214,40 @@ export class ListingsComponent implements OnInit {
     
     // Load available unit types
     this.dataService.unitTypes$.subscribe(types => {
-      this.availableUnitTypes = types.map(t => t.unit_type_name);
+      this.availableUnitTypes = types.map(t => t.unitTypeNameEn);
     });
   }
 
   onGridReady(params: any): void {
     this.gridApi = params.api;
-    
-    // Add click event listener for edit and remove buttons
-    params.api.addEventListener('cellClicked', (event: any) => {
-      if (event.event.target.classList.contains('edit-btn')) {
-        this.editRow(event.node);
-      } else if (event.event.target.classList.contains('remove-btn')) {
-        this.removeRow(event.node);
-      }
-    });
   }
 
   onCellValueChanged(event: any): void {
-    this.saveData();
+    const apt = event.data as Apartment;
+    if (apt?.id) this.dirtyApartmentIds.add(apt.id);
+  }
+
+  saveAllChanges(): void {
+    if (this.savingChanges || !this.hasPendingChanges) return;
+
+    const aptsToSave = this.rowData.filter(a => a?.id && this.dirtyApartmentIds.has(a.id));
+    if (aptsToSave.length === 0) {
+      this.dirtyApartmentIds.clear();
+      return;
+    }
+
+    this.savingChanges = true;
+    from(aptsToSave).pipe(
+      concatMap(apt => this.apiService.updateApartment(apt.id, apt)),
+      finalize(() => { this.savingChanges = false; })
+    ).subscribe({
+      next: () => {},
+      complete: () => { this.dirtyApartmentIds.clear(); },
+      error: (err) => {
+        console.error('Failed to save listing changes:', err);
+        alert('Failed to save one or more changes. Please try again.');
+      }
+    });
   }
 
   addRow(): void {
@@ -232,25 +272,35 @@ export class ListingsComponent implements OnInit {
     };
     this.rowData = [newRow, ...this.rowData];
     this.gridApi?.setGridOption('rowData', this.rowData);
-    this.saveData();
+    this.apiService.createApartment(newRow).subscribe({
+      next: (created) => {
+        const idx = this.rowData.findIndex(r => r.id === newRow.id);
+        if (idx !== -1) this.rowData[idx] = created;
+        this.gridApi?.setGridOption('rowData', this.rowData);
+      },
+      error: (err) => {
+        console.error('Failed to create apartment:', err);
+        this.rowData = this.rowData.filter(r => r.id !== newRow.id);
+        this.gridApi?.setGridOption('rowData', this.rowData);
+      }
+    });
   }
 
   editRow(node: any): void {
-    this.editingApartment = { ...node.data };
+    // Deep-copy mutable arrays so edits don't mutate the grid row data
+    this.editingApartment = {
+      ...node.data,
+      feature_ids: [...(node.data.feature_ids ?? [])],
+      images: [...(node.data.images ?? [])]
+    };
     this.showEditModal = true;
     this.activeTab = 'basic';
-    
-    if (this.editingApartment?.id) {
-      this.loadApartmentImages(this.editingApartment.id);
-      this.loadApartmentFeatures(this.editingApartment.feature_ids ?? []);
-    }
   }
   
   closeEditModal(): void {
     this.showEditModal = false;
     this.editingApartment = null;
     this.activeTab = 'basic';
-    this.apartmentFeatures = [];
     this.cancelEditingImageName();
   }
   
@@ -261,7 +311,6 @@ export class ListingsComponent implements OnInit {
       if (index !== -1) {
         this.rowData[index] = updated;
         this.gridApi?.setGridOption('rowData', this.rowData);
-        this.saveData();
       }
       this.apiService.updateApartment(updated.id, updated).subscribe({
         error: (err) => console.error('Failed to save apartment to API:', err)
@@ -274,109 +323,33 @@ export class ListingsComponent implements OnInit {
     this.activeTab = tab;
   }
   
-  loadApartmentFeatures(featureIds: number[]): void {
-    if (!featureIds.length) {
-      this.apartmentFeatures = [];
-      return;
-    }
-    this.loadingFeatures = true;
-    forkJoin(featureIds.map(id => this.apiService.getFeatureById(id))).subscribe({
-      next: (features) => { this.apartmentFeatures = features; this.loadingFeatures = false; },
-      error: () => { this.apartmentFeatures = []; this.loadingFeatures = false; }
-    });
-  }
-
   toggleFeature(featureId: number): void {
     if (!this.editingApartment) return;
-    
-    const index = this.editingApartment.feature_ids.indexOf(featureId);
+    const ids = this.editingApartment.feature_ids;
+    const index = ids.indexOf(featureId);
     if (index > -1) {
-      this.editingApartment.feature_ids.splice(index, 1);
-      this.apartmentFeatures = this.apartmentFeatures.filter(f => f.id !== featureId);
+      ids.splice(index, 1);
     } else {
-      this.editingApartment.feature_ids.push(featureId);
-      this.apiService.getFeatureById(featureId).subscribe({
-        next: (f) => { this.apartmentFeatures = [...this.apartmentFeatures, f]; }
-      });
+      ids.push(featureId);
     }
+    // selectedFeatures getter recomputes automatically from feature_ids + availableFeatures
   }
   
   isFeatureSelected(featureId: number): boolean {
     return this.editingApartment?.feature_ids.includes(featureId) || false;
   }
-  loadApartmentImages(apartmentId: string): void {
-    this.loadingImages = true;
-    this.apiService.getApartmentImages(apartmentId).subscribe({
-      next: (images) => {
-        this.apartmentImages = images;
-        if (this.editingApartment?.id === apartmentId) {
-          this.editingApartment.images = images.map(i => i.fileName);
-        }
-        this.loadingImages = false;
-      },
-      error: (error) => {
-        console.error('Error loading apartment images:', error);
-        this.apartmentImages = [];
-        if (this.editingApartment?.id === apartmentId) {
-          this.editingApartment.images = [];
-        }
-        this.loadingImages = false;
-      }
-    });
-  }
-  
-  private ensureApartmentExistsInApi(apartment: Apartment) {
-    return this.apiService.getApartmentById(apartment.id).pipe(
-      catchError((error) => {
-        if (error?.status === 404) {
-          return this.apiService.createApartment(apartment).pipe(
-            catchError((createError) => {
-              // If another client created it between GET and POST.
-              if (createError?.status === 409) {
-                return of(apartment);
-              }
-              return throwError(() => createError);
-            })
-          );
-        }
-        return throwError(() => error);
-      })
-    );
-  }
-  
   addImage(): void {
-    if (this.creatingImage) return;
     if (!this.editingApartment || !this.newImageUrl.trim()) return;
-
-    const fileName = this.newImageUrl.trim();
-    this.creatingImage = true;
-
-    this.ensureApartmentExistsInApi(this.editingApartment).pipe(
-      switchMap(() => this.apiService.createApartmentImage({
-        apartmentId: this.editingApartment!.id,
-        fileName
-      })),
-      finalize(() => {
-        this.creatingImage = false;
-      })
-    ).subscribe({
-      next: (created) => {
-        this.apartmentImages.push(created);
-        this.editingApartment!.images = this.apartmentImages.map(i => i.fileName);
-        this.newImageUrl = '';
-      },
-      error: (error) => {
-        console.error('Error creating apartment image:', error);
-        alert('Failed to add image name. Please try again.');
-      }
-    });
+    if (!this.editingApartment.images) this.editingApartment.images = [];
+    this.editingApartment.images.push(this.newImageUrl.trim());
+    this.newImageUrl = '';
   }
   
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
-      this.selectedFiles = input.files;
-      this.uploadSelectedImages();
+      this.addFilesToImages(Array.from(input.files));
+      input.value = '';
     }
   }
 
@@ -396,116 +369,42 @@ export class ListingsComponent implements OnInit {
     event.preventDefault();
     event.stopPropagation();
     this.isDragOver = false;
-
     const files = event.dataTransfer?.files;
     if (files && files.length > 0) {
-      this.selectedFiles = files;
-      this.uploadSelectedImages();
+      this.addFilesToImages(Array.from(files).filter(f => f.type.startsWith('image/')));
     }
   }
-  
-  uploadSelectedImages(): void {
-    if (this.creatingImage) return;
-    if (!this.editingApartment || !this.selectedFiles) return;
 
-    const files = this.selectedFiles;
-    this.selectedFiles = null;
-    if (files.length === 0) return;
-
-    this.creatingImage = true;
-    this.ensureApartmentExistsInApi(this.editingApartment).pipe(
-      switchMap(() => this.apiService.uploadApartmentImageFiles(this.editingApartment!.id, files)),
-      finalize(() => {
-        this.creatingImage = false;
-      })
-    ).subscribe({
-      next: (created) => {
-        this.apartmentImages.push(...created);
-        this.editingApartment!.images = this.apartmentImages.map(i => i.fileName);
-      },
-      error: (error) => {
-        console.error('Error uploading apartment images:', error);
-        alert('Failed to upload one or more images. Please try again.');
-      }
-    });
+  private addFilesToImages(files: File[]): void {
+    if (!this.editingApartment) return;
+    if (!this.editingApartment.images) this.editingApartment.images = [];
+    for (const file of files) {
+      this.editingApartment.images.push(file.name);
+    }
   }
-  
+
   removeImage(index: number): void {
-    const image = this.apartmentImages[index];
-    if (!image) return;
-
-    if (!confirm('Are you sure you want to remove this image?')) {
-      return;
+    if (!this.editingApartment) return;
+    if (!confirm('Are you sure you want to remove this image?')) return;
+    this.editingApartment.images.splice(index, 1);
+    if (this.editingImageIndex === index) {
+      this.cancelEditingImageName();
     }
-
-    this.deletingImageId = image.id;
-    this.apiService.deleteApartmentImage(image.id).pipe(
-      finalize(() => {
-        this.deletingImageId = null;
-      })
-    ).subscribe({
-      next: () => {
-        this.apartmentImages = this.apartmentImages.filter(i => i.id !== image.id);
-        if (this.editingApartment) {
-          this.editingApartment.images = this.apartmentImages.map(i => i.fileName);
-        }
-        if (this.editingImageIndex === index) {
-          this.cancelEditingImageName();
-        }
-      },
-      error: (error) => {
-        console.error('Error deleting apartment image:', error);
-        alert('Failed to remove image. Please try again.');
-      }
-    });
   }
 
   startEditingImageName(index: number): void {
-    if (this.updatingImage) return;
     this.editingImageIndex = index;
-    this.editingImageName = this.apartmentImages[index]?.fileName ?? '';
+    this.editingImageName = this.editingApartment?.images[index] ?? '';
   }
 
   saveImageName(index: number): void {
-    if (this.updatingImage || !this.editingImageName.trim()) {
+    if (!this.editingImageName.trim() || !this.editingApartment) {
       this.cancelEditingImageName();
       return;
     }
-
-    const image = this.apartmentImages[index];
-    if (!image) {
-      this.cancelEditingImageName();
-      return;
-    }
-
-    const newName = this.editingImageName.trim();
-    this.updatingImage = true;
-
-    this.apiService.updateApartmentImage(image.id, {
-      apartmentId: image.apartmentId,
-      fileName: newName
-    }).pipe(
-      finalize(() => {
-        this.updatingImage = false;
-      })
-    ).subscribe({
-      next: () => {
-        const idx = this.apartmentImages.findIndex(i => i.id === image.id);
-        if (idx !== -1) {
-          this.apartmentImages[idx].fileName = newName;
-        }
-        if (this.editingApartment) {
-          this.editingApartment.images = this.apartmentImages.map(i => i.fileName);
-        }
-        this.cancelEditingImageName();
-      },
-      error: (error) => {
-        console.error('Error renaming apartment image:', error);
-        alert('Failed to rename image. Please try again.');
-      }
-    });
+    this.editingApartment.images[index] = this.editingImageName.trim();
+    this.cancelEditingImageName();
   }
-
   cancelEditingImageName(): void {
     this.editingImageIndex = null;
     this.editingImageName = '';
@@ -517,9 +416,16 @@ export class ListingsComponent implements OnInit {
 
   removeRow(node: any): void {
     if (confirm('Are you sure you want to remove this listing?')) {
-      this.rowData = this.rowData.filter(row => row.id !== node.data.id);
+      const removed = node.data as Apartment;
+      this.rowData = this.rowData.filter(row => row.id !== removed.id);
       this.gridApi?.setGridOption('rowData', this.rowData);
-      this.saveData();
+      this.apiService.deleteApartment(removed.id).subscribe({
+        error: (err) => {
+          console.error('Failed to delete apartment:', err);
+          this.rowData = [removed, ...this.rowData];
+          this.gridApi?.setGridOption('rowData', this.rowData);
+        }
+      });
     }
   }
 

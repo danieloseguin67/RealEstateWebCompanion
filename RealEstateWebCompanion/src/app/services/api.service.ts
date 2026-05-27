@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, catchError, map, of } from 'rxjs';
+import { Observable, catchError, map } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { Apartment, UnitType, Toggle, SeoPage, Area, ApartmentImage } from '../models/data.models';
 
@@ -45,6 +45,18 @@ export class ApiService {
     );
   }
 
+  createUnitType(unitType: UnitType): Observable<UnitType> {
+    return this.http.post<UnitType>(`${this.baseUrl}/unittypes`, unitType);
+  }
+
+  updateUnitType(id: number, unitType: UnitType): Observable<void> {
+    return this.http.put<void>(`${this.baseUrl}/unittypes/${id}`, unitType);
+  }
+
+  deleteUnitType(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/unittypes/${id}`);
+  }
+
   getFeatures(): Observable<Toggle[]> {
     // Normalize the response to handle both snake_case (new API with [JsonPropertyName])
     // and camelCase (older builds without explicit naming attributes).
@@ -87,6 +99,22 @@ export class ApiService {
     );
   }
 
+  discoverPages(url: string): Observable<string[]> {
+    return this.http.get<string[]>(`${this.baseUrl}/seo/discover`, { params: { url } });
+  }
+
+  createSeoPage(page: SeoPage): Observable<SeoPage> {
+    return this.http.post<SeoPage>(`${this.baseUrl}/seo`, page);
+  }
+
+  updateSeoPage(id: string, page: SeoPage): Observable<void> {
+    return this.http.put<void>(`${this.baseUrl}/seo/${id}`, page);
+  }
+
+  deleteSeoPage(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/seo/${id}`);
+  }
+
   getAreas(): Observable<Area[]> {
     return this.http.get<Area[]>(`${this.baseUrl}/areas`);
   }
@@ -95,11 +123,11 @@ export class ApiService {
     return this.http.post<Area>(`${this.baseUrl}/areas`, area);
   }
 
-  updateArea(areaId: string, area: Area): Observable<void> {
+  updateArea(areaId: number, area: Area): Observable<void> {
     return this.http.put<void>(`${this.baseUrl}/areas/${areaId}`, area);
   }
 
-  deleteArea(areaId: string): Observable<void> {
+  deleteArea(areaId: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/areas/${areaId}`);
   }
 
@@ -115,6 +143,26 @@ export class ApiService {
     );
   }
 
+  createFeature(toggle: Toggle): Observable<Toggle> {
+    return this.http.post<any>(`${this.baseUrl}/features`, toggle).pipe(
+      map(f => ({
+        id:           f.id           ?? 0,
+        toggle_name:  f.toggle_name  ?? '',
+        french_name:  f.french_name  ?? '',
+        english_name: f.english_name ?? '',
+        toggle_image: f.toggle_image ?? '',
+      }))
+    );
+  }
+
+  updateFeature(id: number, toggle: Toggle): Observable<void> {
+    return this.http.put<void>(`${this.baseUrl}/features/${id}`, toggle);
+  }
+
+  deleteFeature(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/features/${id}`);
+  }
+
   getApartmentById(apartmentId: string): Observable<Apartment> {
     return this.http.get<Apartment>(`${this.baseUrl}/apartments/${apartmentId}`);
   }
@@ -125,6 +173,10 @@ export class ApiService {
 
   updateApartment(id: string, apartment: Apartment): Observable<void> {
     return this.http.put<void>(`${this.baseUrl}/apartments/${id}`, apartment);
+  }
+
+  deleteApartment(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/apartments/${id}`);
   }
 
   getApartmentImages(apartmentId: string): Observable<ApartmentImage[]> {

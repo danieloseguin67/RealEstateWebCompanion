@@ -11,6 +11,13 @@
     </div>
   </div>
 
+  @if (errorMessage) {
+    <div class="error-banner" role="alert">
+      <span>{{ errorMessage }}</span>
+      <button class="error-dismiss" (click)="clearError()" aria-label="Dismiss">&times;</button>
+    </div>
+  }
+
   @if (isEditing && editingArea) {
     <div class="edit-form-overlay">
       <div class="edit-form">
@@ -18,7 +25,7 @@
         <form>
           <div class="form-group">
             <label for="id">ID:</label>
-            <input type="number" id="id" [(ngModel)]="editingArea.id" name="id" class="form-control" readonly>
+            <input type="text" id="id" [(ngModel)]="editingArea.id" name="id" class="form-control" readonly>
           </div>
           <div class="form-group">
             <label for="nameFr">Name (FR):</label>
@@ -27,6 +34,10 @@
           <div class="form-group">
             <label for="nameEn">Name (EN):</label>
             <input type="text" id="nameEn" [(ngModel)]="editingArea.nameEn" name="nameEn" class="form-control">
+          </div>
+          <div class="form-group">
+            <label for="descriptionFr">Description (FR):</label>
+            <textarea id="descriptionFr" [(ngModel)]="editingArea.descriptionFr" name="descriptionFr" class="form-control" rows="4"></textarea>
           </div>
           <div class="form-group">
             <label for="descriptionEn">Description (EN):</label>

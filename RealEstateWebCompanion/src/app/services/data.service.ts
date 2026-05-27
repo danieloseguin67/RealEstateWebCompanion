@@ -38,15 +38,13 @@ export class DataService {
   }
 
   loadApartments(): void {
-    const stored = this.storageService.getItem<Apartment[]>('apartments');
-    if (stored) {
-      this.apartmentsSubject.next(stored);
-    } else {
-      this.apiService.getApartments().subscribe(data => {
-        this.apartmentsSubject.next(data);
-        this.storageService.setItem('apartments', data);
-      });
-    }
+    // Always fetch fresh from the API — the DTO shape (feature_ids, images) must
+    // come from /api/Apartments, not from a potentially stale localStorage cache.
+    this.storageService.removeItem('apartments');
+    this.apiService.getApartments().subscribe(data => {
+      this.apartmentsSubject.next(data);
+      this.storageService.setItem('apartments', data);
+    });
   }
 
   loadAreas(): void {

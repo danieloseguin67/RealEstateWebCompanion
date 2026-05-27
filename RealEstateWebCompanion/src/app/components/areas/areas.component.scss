@@ -1,4 +1,30 @@
 .areas {
+  .error-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+
+    .error-dismiss {
+      background: none;
+      border: none;
+      color: #721c24;
+      font-size: 1.25rem;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0 0.25rem;
+
+      &:hover {
+        color: #491217;
+      }
+    }
+  }
+
   .header {
     display: flex;
     justify-content: space-between;

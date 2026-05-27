@@ -7,7 +7,6 @@ public class Feature
     [Key]
     public int Id { get; set; }
 
-    [MaxLength(10)]
     public string ToggleImage { get; set; } = string.Empty;
 
     [MaxLength(100)]
