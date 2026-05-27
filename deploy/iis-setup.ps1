@@ -169,6 +169,8 @@ Write-Step "Pre-flight checks"
 $apiSrc  = Join-Path $BuildRoot "webcompanion-api"
 $appSrc  = Join-Path $BuildRoot "webcompanion-app"
 $m4rSrc  = Join-Path $BuildRoot "montreal4rent"
+$repoRoot = Split-Path $PSScriptRoot -Parent
+$m4rSourceImages = Join-Path $repoRoot "montreal4rent\website\src\assets\images"
 
 $dirsToCheck = @($apiSrc, $appSrc)
 if (-not $SkipMontreal4Rent) { $dirsToCheck += $m4rSrc }
@@ -408,7 +410,14 @@ if ($apiPoolExists) {
 
 Sync-Dir $apiSrc  $apiDest
 Sync-Dir $appSrc  $appDest
-if (-not $SkipMontreal4Rent) { Sync-Dir $m4rSrc  $m4rDest }
+if (-not $SkipMontreal4Rent) {
+    Sync-Dir $m4rSrc  $m4rDest
+
+    if (Test-Path $m4rSourceImages) {
+        Sync-Dir $m4rSourceImages (Join-Path $m4rDest "assets\images")
+        Write-Ok "Synced Montreal4Rent source images into deployed assets/images."
+    }
+}
 
 # Restart the API app pool after copy
 if ($apiPoolExists) {

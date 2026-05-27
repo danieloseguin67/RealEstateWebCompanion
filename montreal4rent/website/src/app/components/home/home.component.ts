@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/co
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { DataService, Apartment, Area, ToggleOption } from '../../services/data.service';
+import { DataService, Apartment, Area, ToggleOption, UnitType } from '../../services/data.service';
 import { LanguageService } from '../../services/language.service';
 import { CacheBustingService } from '../../services/cache-busting.service';
 import { Subject, takeUntil } from 'rxjs';
@@ -105,15 +105,14 @@ import { Subject, takeUntil } from 'rxjs';
                     <select 
                       id="unit-type-select"
                       class="form-control form-select" 
-                      [(ngModel)]="selectedBedrooms"
+                      [(ngModel)]="selectedUnitType"
                       (change)="onFiltersChanged()"
-                      aria-label="Select number of bedrooms"
+                      aria-label="Select unit type"
                     >
                       <option value="">All Unit Types</option>
-                      <option value="0">Studio</option>
-                      <option value="1">1 {{ t.common?.bedroom }}</option>
-                      <option value="2">2 {{ t.common?.bedrooms }}</option>
-                      <option value="3">3+ {{ t.common?.bedrooms }}</option>
+                      <option *ngFor="let unitType of unitTypes" [value]="unitType.unit_type_name">
+                        {{ unitType.unit_type_name }}
+                      </option>
                     </select>
                   </div>
                 </div>
@@ -382,6 +381,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   filteredApartments: Apartment[] = [];
   areas: Area[] = [];
   toggles: ToggleOption[] = [];
+  unitTypes: UnitType[] = [];
   selectedToggles: Set<string> = new Set<string>();
   loading = true;
   t: any = {};
@@ -391,7 +391,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   // Filters
   selectedArea = '';
-  selectedBedrooms: string = '';
+  selectedUnitType: string = '';
   sortBy: 'price-asc' | 'price-desc' = 'price-asc';
   showFilters = false; // Start with filters collapsed
 
@@ -437,6 +437,12 @@ export class HomeComponent implements OnInit, OnDestroy {
       .subscribe(opts => {
         this.toggles = opts || [];
       });
+
+    this.dataService.getUnitTypes()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(types => {
+        this.unitTypes = types || [];
+      });
   }
 
   private subscribeToLanguageChanges(): void {
@@ -474,13 +480,8 @@ export class HomeComponent implements OnInit, OnDestroy {
       filtered = filtered.filter(apt => apt.area.toLowerCase() === selectedAreaLower);
     }
 
-    if (this.selectedBedrooms !== '') {
-      const bedrooms = parseInt(this.selectedBedrooms);
-      if (bedrooms >= 3) {
-        filtered = filtered.filter(apt => this.getBedrooms(apt) >= 3);
-      } else {
-        filtered = filtered.filter(apt => this.getBedrooms(apt) === bedrooms);
-      }
+    if (this.selectedUnitType) {
+      filtered = filtered.filter(apt => (apt.unit_type_name || '').toLowerCase() === this.selectedUnitType.toLowerCase());
     }
 
     // Apply sorting
@@ -499,14 +500,14 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   clearFilters(): void {
     this.selectedArea = '';
-    this.selectedBedrooms = '';
+    this.selectedUnitType = '';
     this.sortBy = 'price-asc';
     this.selectedToggles.clear();
     this.applyFilters();
   }
 
   hasActiveFilters(): boolean {
-    return !!(this.selectedArea || this.selectedBedrooms !== '' || this.selectedToggles.size > 0);
+    return !!(this.selectedArea || this.selectedUnitType || this.selectedToggles.size > 0);
   }
 
   onA11yBadgeClick(): void {

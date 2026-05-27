@@ -41,6 +41,11 @@
               },
               {
                 "glob": "**/*",
+                "input": "src/assets/images",
+                "output": "/assets/images/"
+              },
+              {
+                "glob": "**/*",
                 "input": "php/",
                 "output": "/php/"
               },
@@ -129,6 +134,11 @@
               {
                 "glob": "**/*",
                 "input": "../images/",
+                "output": "/assets/images/"
+              },
+              {
+                "glob": "**/*",
+                "input": "src/assets/images",
                 "output": "/assets/images/"
               }
             ],

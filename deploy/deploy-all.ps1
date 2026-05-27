@@ -118,6 +118,18 @@ if ($BuildRoot -eq "") {
     $BuildRoot = if ($Environment -eq "local") { "C:\deploy\build" } else { Join-Path $scriptDir "build" }
 }
 
+if ($Environment -eq "local") {
+    if (-not $PSBoundParameters.ContainsKey("WebCompanionAppHostname")) {
+        $WebCompanionAppHostname = "localhost"
+    }
+    if (-not $PSBoundParameters.ContainsKey("Montreal4RentHostname")) {
+        $Montreal4RentHostname = "montreal4rent.localhost"
+    }
+    if (-not $PSBoundParameters.ContainsKey("Montreal4RentHostnameWww")) {
+        $Montreal4RentHostnameWww = "www.montreal4rent.localhost"
+    }
+}
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -220,7 +232,9 @@ if ($Environment -eq "local") {
     $iisArgs = @{
         BuildRoot               = $BuildRoot
         SqlServer               = "localhost"
-        WebCompanionAppHostname = "localhost"
+        WebCompanionAppHostname = $WebCompanionAppHostname
+        Montreal4RentHostname   = $Montreal4RentHostname
+        Montreal4RentHostnameWww = $Montreal4RentHostnameWww
         SkipDatabaseInit        = $true
         SkipIisFeatures         = $true          # already handled above
     }
@@ -275,8 +289,8 @@ if ($Environment -eq "local") {
     Write-Host @"
 
   WebCompanionAPI  -> http://localhost:6003
-  WebCompanionApp  -> http://localhost
-  Montreal4Rent    -> http://montreal4rent.localhost  (if not skipped)
+    WebCompanionApp  -> http://$WebCompanionAppHostname
+    Montreal4Rent    -> http://$Montreal4RentHostname  (if not skipped)
 
   If appsettings need updating, run:
     deploy\fix-local-appsettings.bat

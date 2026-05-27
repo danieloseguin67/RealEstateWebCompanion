@@ -100,6 +100,15 @@ public class CustomersResponseDto
 
 public class PreferencesDto
 {
+    [JsonPropertyName("area_link")]
+    public string AreaLink { get; set; } = string.Empty;
+
+    [JsonPropertyName("phone_number")]
+    public string PhoneNumber { get; set; } = string.Empty;
+
+    [JsonPropertyName("email")]
+    public string Email { get; set; } = string.Empty;
+
     [JsonPropertyName("googledrive")]
     public string GoogleDrive { get; set; } = string.Empty;
 }

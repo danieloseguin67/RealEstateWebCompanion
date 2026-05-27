@@ -125,6 +125,14 @@ if (-not $SkipMontreal4Rent) {
         $ngDist = Join-Path $montreal4Src "dist\montreal4rent"
     }
     robocopy $ngDist $m4rOut /MIR /NP /NFL /NDL /NJH /NJS | Out-Null
+
+    $sourceImages = Join-Path $montreal4Src "src\assets\images"
+    $stagedImages = Join-Path $m4rOut "assets\images"
+    if (Test-Path $sourceImages) {
+        robocopy $sourceImages $stagedImages /E /NP /NFL /NDL /NJH /NJS | Out-Null
+        Write-Ok "Montreal4Rent source images synced -> $stagedImages"
+    }
+
     Write-Ok "Montreal4Rent -> $m4rOut"
 }
 

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject } from 'rxjs';
+import { Observable, BehaviorSubject, forkJoin } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 export interface Apartment {
@@ -50,6 +50,7 @@ export interface ToggleOption {
 
 export interface UnitType {
   unit_type_name: string;
+  rooms?: number;
 }
 
 export interface Preferences {
@@ -58,10 +59,60 @@ export interface Preferences {
   email: string;
 }
 
+interface ApartmentApiDto {
+  id: string;
+  title: string;
+  titleEn: string;
+  unit_type_name: string;
+  bathrooms: number;
+  squareFootage: number;
+  price: number;
+  area: string;
+  furnished: boolean;
+  roomtorent: boolean;
+  condorentals: boolean;
+  available: boolean;
+  description: string;
+  descriptionEn: string;
+  feature_ids: number[];
+  images: string[];
+}
+
+interface AreaApiDto {
+  id: number;
+  name: string;
+  nameFr: string;
+  nameEn: string;
+  descriptionFr: string;
+  descriptionEn: string;
+  link: string;
+}
+
+interface FeatureApiDto {
+  id: number;
+  toggle_image: string;
+  french_name: string;
+  english_name: string;
+}
+
+interface UnitTypeApiDto {
+  id: number;
+  unitTypeNameEn: string;
+  unitTypeNameFr: string;
+}
+
+interface PreferencesApiDto {
+  area_link: string;
+  phone_number: string;
+  email: string;
+  googledrive: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class DataService {
+  private readonly apiBaseUrl = '/api';
   private apartmentsSubject = new BehaviorSubject<Apartment[]>([]);
   private areasSubject = new BehaviorSubject<Area[]>([]);
   
@@ -73,16 +124,21 @@ export class DataService {
   }
 
   private loadData(): void {
-    // Load apartments
-    this.http.get<Apartment[]>('assets/data/apartments.json').subscribe({
-      next: (data) => this.apartmentsSubject.next(data),
-      error: (error) => console.error('Error loading apartments:', error)
-    });
-
-    // Load areas
-    this.http.get<{areas: Area[]}>('assets/data/areas.json').subscribe({
-      next: (data) => this.areasSubject.next(data.areas),
-      error: (error) => console.error('Error loading areas:', error)
+    forkJoin({
+      apartments: this.http.get<ApartmentApiDto[]>(`${this.apiBaseUrl}/apartments`),
+      areas: this.http.get<AreaApiDto[]>(`${this.apiBaseUrl}/areas`),
+      features: this.http.get<FeatureApiDto[]>(`${this.apiBaseUrl}/features`)
+    }).pipe(
+      map(({ apartments, areas, features }) => ({
+        apartments: apartments.map(apartment => this.mapApartmentFromApi(apartment, features)),
+        areas: areas.map(area => this.mapAreaFromApi(area))
+      }))
+    ).subscribe({
+      next: (data) => {
+        this.apartmentsSubject.next(data.apartments);
+        this.areasSubject.next(data.areas);
+      },
+      error: (error) => console.error('Error loading API data:', error)
     });
   }
 
@@ -153,14 +209,93 @@ export class DataService {
   }
 
   getToggles(): Observable<ToggleOption[]> {
-    return this.http.get<ToggleOption[]>('assets/data/toggles.json');
+    return this.http.get<FeatureApiDto[]>(`${this.apiBaseUrl}/features`).pipe(
+      map(features => features.map(feature => this.mapToggleFromApi(feature)))
+    );
   }
 
   getUnitTypes(): Observable<UnitType[]> {
-    return this.http.get<UnitType[]>('assets/data/unittypes.json');
+    return this.http.get<UnitTypeApiDto[]>(`${this.apiBaseUrl}/unittypes`).pipe(
+      map(unitTypes => unitTypes.map(unitType => this.mapUnitTypeFromApi(unitType)))
+    );
   }
 
   getPreferences(): Observable<Preferences> {
-    return this.http.get<Preferences>('assets/data/preferences.json');
+    return this.http.get<PreferencesApiDto>(`${this.apiBaseUrl}/preferences`).pipe(
+      map(preferences => this.mapPreferencesFromApi(preferences))
+    );
+  }
+
+  private mapApartmentFromApi(apartment: ApartmentApiDto, features: FeatureApiDto[]): Apartment {
+    const resolvedFeatures = apartment.feature_ids
+      .map(featureId => features.find(feature => feature.id === featureId))
+      .filter((feature): feature is FeatureApiDto => Boolean(feature));
+
+    return {
+      id: apartment.id,
+      title: apartment.title,
+      titleEn: apartment.titleEn,
+      unit_type_name: apartment.unit_type_name,
+      bathrooms: apartment.bathrooms,
+      squareFootage: apartment.squareFootage,
+      price: apartment.price,
+      area: apartment.area,
+      furnished: apartment.furnished,
+      roomtorent: apartment.roomtorent,
+      condorentals: apartment.condorentals,
+      available: apartment.available,
+      features: resolvedFeatures.map(feature => feature.french_name),
+      featuresEn: resolvedFeatures.map(feature => feature.english_name),
+      images: apartment.images,
+      description: apartment.description,
+      descriptionEn: apartment.descriptionEn,
+    };
+  }
+
+  private mapAreaFromApi(area: AreaApiDto): Area {
+    return {
+      id: String(area.id),
+      name: area.name,
+      nameFr: area.nameFr,
+      nameEn: area.nameEn,
+      description: area.descriptionFr,
+      descriptionEn: area.descriptionEn,
+      link: area.link,
+    };
+  }
+
+  private mapToggleFromApi(feature: FeatureApiDto): ToggleOption {
+    return {
+      toggle_name: feature.english_name,
+      toggle_image: feature.toggle_image,
+    };
+  }
+
+  private mapUnitTypeFromApi(unitType: UnitTypeApiDto): UnitType {
+    const unitTypeName = unitType.unitTypeNameEn;
+
+    return {
+      unit_type_name: unitTypeName,
+      rooms: this.inferRoomsFromUnitType(unitTypeName),
+    };
+  }
+
+  private mapPreferencesFromApi(preferences: PreferencesApiDto): Preferences {
+    return {
+      area_link: preferences.area_link,
+      phone_number: preferences.phone_number,
+      email: preferences.email,
+    };
+  }
+
+  private inferRoomsFromUnitType(unitTypeName: string): number {
+    const normalizedName = unitTypeName.toLowerCase();
+
+    if (normalizedName.includes('studio')) {
+      return 1;
+    }
+
+    const match = normalizedName.match(/(\d+)/);
+    return match ? Number(match[1]) : 0;
   }
 }

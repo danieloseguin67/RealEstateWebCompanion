@@ -3,7 +3,7 @@ import { CommonModule, Location } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { DataService, Apartment, Area } from '../../services/data.service';
+import { DataService, Apartment, Area, UnitType } from '../../services/data.service';
 import { LanguageService } from '../../services/language.service';
 import { CacheBustingService } from '../../services/cache-busting.service';
 import { EmailLoggerService } from '../../services/email-logger.service';
@@ -332,7 +332,7 @@ export class ApartmentDetailComponent implements OnInit, OnDestroy {
   apartment: Apartment | null = null;
   similarApartments: Apartment[] = [];
   areas: Area[] = [];
-  unitTypes: Array<{unit_type_name: string, rooms: number}> = [];
+  unitTypes: UnitType[] = [];
   currentImageIndex = 0;
   loading = true;
   imageLoaded = false;
@@ -560,7 +560,7 @@ export class ApartmentDetailComponent implements OnInit, OnDestroy {
   getBedroomsFromUnitType(unitTypeName: string | undefined): number {
     if (!unitTypeName) return 0;
     const unitType = this.unitTypes.find(ut => ut.unit_type_name === unitTypeName);
-    return unitType ? unitType.rooms : 0;
+    return unitType?.rooms ?? 0;
   }
 
   getApartmentBedrooms(apartment: Apartment): number {
@@ -574,7 +574,7 @@ export class ApartmentDetailComponent implements OnInit, OnDestroy {
   }
 
   private loadUnitTypes(): void {
-    this.http.get<Array<{unit_type_name: string, rooms: number}>>('assets/data/unittypes.json')
+    this.dataService.getUnitTypes()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (unitTypes) => this.unitTypes = unitTypes,
