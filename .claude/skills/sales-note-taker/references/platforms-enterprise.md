@@ -1,0 +1,599 @@
+# Enterprise & Revenue Intelligence — Platform Reference
+
+Enterprise conversation intelligence and revenue platforms. High-budget tools ($1,000+/user/year) with deep analytics, deal intelligence, and forecasting integration, plus bolt-on CI modules inside existing sales platforms. For the comparison table across all categories, see `platforms.md`.
+
+---
+
+## Gong
+
+For deep platform coverage (all modules, API endpoints, webhook automation, Smart Tracker tuning, coaching scorecards, pricing breakdown, known issues), use `/sales-gong`.
+
+**Positioning**: Revenue intelligence leader — the deepest conversation analytics, deal risk detection, coaching analytics, and deal intelligence in the category. Enterprise-priced. Trusted by 5,000+ customers. Also includes Gong Forecast (revenue forecasting, widely considered weak — ~40% of customers stack Clari), Gong Engage (sales engagement, known stability issues), Gong Enable (enablement), and Gong Agents (AI automation).
+
+**Pricing (2026-04)**: ~$1,600/user/year list (negotiated: $1,000-$1,349 at scale). Mandatory platform fee: $5K-$50K/year regardless of team size. Onboarding: $7,500+. Add-ons: Forecast ~$700/user/yr, Engage ~$800/user/yr. Fully loaded: $2,400-$3,000/user/yr + platform fees. Annual/multi-year contracts with 5-10% renewal uplift. No public self-serve pricing.
+
+**API**:
+- Docs: `https://help.gong.io/docs/what-the-gong-api-provides`
+- Type: REST
+- Base URL: `https://api.gong.io/v2/`
+- Auth: Basic Auth (`access_key:access_key_secret` base64-encoded) or OAuth 2.0 (required for multi-tenant)
+- Scopes: `api:users:read`, `api:calls:read`, `api:flows:read`, etc.
+- Rate limits: **3 req/sec, ~1k/hr, 10k/day per API key** — design for this early
+- Rate-limit headers on every response: `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`
+- 429 responses include `Retry-After` header
+- Key endpoints:
+  - `GET /v2/calls` — list calls (filter by date, users, deal)
+  - `GET /v2/calls/{id}` — call metadata (participants, topics, trackers, scorecards)
+  - `POST /v2/calls/{id}/transcript` — **POST**, not GET — returns full transcript with monologues
+  - `GET /v2/users`, `GET /v2/users/{id}/stats` — user data and activity stats
+  - `GET/POST /v2/crm/object`, `GET/POST /v2/crm/map-fields` — CRM integration
+  - `GET/POST/PUT /v2/flows` — Engage flow management (requires `api:flows:read`)
+
+**Webhooks**:
+- Enable via Automations tab in Developer Hub
+- Payload: JSON with `callData` (full call data — metadata, CRM context, parties, tracked content, interaction stats, collaboration comments) and `isTest` flag
+- Authentication: Signed JWT header — verify digital signature with public key from Developer Hub
+- Events: Call processed, deal updated, engagement events (push external events into Gong timeline)
+- Payload schema matches API response schema
+
+**Integrations**: Deep Salesforce (tasks, bi-directional deal sync), HubSpot (meetings, bi-directional), Dynamics 365; Slack; Zoom, Teams, Webex, Google Meet, Dialpad, RingCentral, Aircall, 50+ dialers. MCP support announced (2026). Gong Collective marketplace (230+ partners).
+
+**Known issues (from 600+ G2/Capterra reviews)**:
+- Smart Trackers: high false-positive rates (87 mentions), need 50-100 examples per tracker, context-blind
+- Call search: unintuitive filtering, hard to find specific calls (154 mentions)
+- Transcription accuracy: degrades with accents, non-native English, technical jargon (84 mentions)
+- No bulk data export via UI — must use API (requires dev resources)
+- Gong Forecast widely considered weak — ~40% of customers also buy Clari
+- Gong Engage: slow, buggy, high admin burden
+- Support quality declined 2024-2025 — outsourced onboarding, slow ticket resolution
+- Mandatory bundling on new contracts — CI-only pricing increasingly hard to get
+- CRM sync is one-way for many fields — doesn't auto-populate methodology fields or custom objects
+
+**Selection notes**:
+- **Pick Gong when**: You're enterprise (50+ reps), revenue intelligence is a strategic investment, coaching/deal analytics ROI justifies $1k+/user/yr, and you need the deepest conversation analytics in the category
+- **Avoid Gong when**: Budget is a primary constraint, team is under ~20 reps (overkill and negative ROI), you primarily need forecasting (→ Clari) or sales engagement (→ Salesloft/Outreach), or you need a quick-start tool without 3-6 month implementation
+
+**API gotchas**:
+- Transcript endpoint is **POST**, unlike most vendors — common first-integration bug
+- 3 req/sec is aggressive — queue/batch every outbound call, target 2/sec for headroom
+- Backfilling history burns daily quota fast — paginate nightly, not all at once
+- No bulk export endpoint — must iterate through calls individually
+- OAuth required for multi-tenant apps; Basic Auth for single-org only
+
+---
+
+## Bolt-on conversation intelligence (inside other platforms)
+
+These aren't standalone note-takers — they're modules within existing sales tools. Only relevant if you already use the parent platform.
+
+## Clari Copilot
+
+For deep platform coverage (API endpoints, pricing tiers, battlecard config, coaching scorecards, CRM sync), use `/sales-clari-copilot`.
+
+**Positioning**: Enterprise conversation intelligence embedded within Clari's revenue orchestration platform. Best for teams already using or considering Clari Core for forecasting. Acquired Salesloft in late 2025 — platform consolidating sales engagement + CI + forecasting.
+
+**Pricing (2026-04)**: Growth ~$60/user/mo, Accelerator ~$90/user/mo, Enterprise ~$110/user/mo. No free tier (30-day trial). Implementation $15K-75K. API access Enterprise-only.
+
+**API**: Clari Core API at `api.clari.com/v4` — forecast export, data ingestion, audit events, opportunity retrieval. API key auth via `apikey` header, 100 req/sec. Copilot-specific API at `api-doc.copilot.clari.com` (Enterprise-only, JS-rendered docs, described as "primitive but functional").
+
+**CRM**: Salesforce (deepest — native bi-directional), HubSpot (call recording links in contact records), Pipedrive (basic).
+
+**Key differentiators**: Real-time battlecards during calls (not just post-call), direct integration with Clari's forecasting engine (call signals feed deal scores), "Ask Clari" conversational AI trained on org's call data, Smart Deal Summaries saving ~30 min per review.
+
+**Limitations**: 15-language transcription only (vs Gong 70+, Notta 58), steep learning curve, bot joining delays reported, CRM sync requires clean pre-existing data.
+
+**When to pick**: You already use Clari Core for forecasting and want CI in the same platform. You want real-time battlecards during calls. Budget is $60-110/user/mo and you're willing to invest in implementation.
+
+**When NOT to pick**: Budget under $60/user/mo, team < 15 reps, need 30+ languages, want a simple plug-and-play tool, or you're not using/planning Clari Core.
+
+---
+
+## Cresta
+
+For deep platform coverage (all modules, pricing, integrations, implementation planning), use `/sales-cresta`.
+
+**Positioning**: Enterprise contact center AI platform — the broadest scope in the category, combining real-time agent coaching, AI virtual agents, and conversation intelligence/QA on one platform. Targets Fortune 500 with 100+ agent contact centers. Forrester Wave Leader for Conversation Intelligence Solutions for Contact Centers, Q2 2025.
+
+**Pricing (2026-04)**: $60K-$150K/yr, custom quotes. AWS Marketplace: $150K/yr for 125K chats or 100K calls + $1.20/chat, $1.50/call overages. Annual contracts. Smaller deployments reportedly start around $60K/yr.
+
+**API**: Developer portal at developers.cresta.com. SDK/API exists for CCaaS integration but no public endpoint documentation — docs behind auth/demo request. REST + webhooks reported.
+
+**CRM**: Salesforce, ServiceNow, Pega, Dynamics 365, HubSpot, Zendesk, Pipedrive, Oracle, Intercom, Zoho.
+
+**CCaaS integrations**: Five9, Amazon Connect, NICE CXone, Genesys, Avaya, LivePerson, Twilio, Cisco, SIPREC.
+
+**Key differentiators**: AI virtual agents (not just coaching — can handle conversations autonomously), Knowledge Agent (proactive cited answers from connected knowledge bases during calls), Agent Operations Center (unified monitoring of human + AI agents), Automation Discovery (identifies which conversations to automate). Broadest contact center AI scope — competitors focus on subsets (Balto = real-time guidance, Gong = post-call analytics).
+
+**Limitations**: 3-6 month implementation (vs Balto 45-60 days), no public API docs, opaque pricing, transcription accuracy varies with accents, backend integration requires engineering resources, vendor lock-in risk.
+
+**When to pick**: You're Fortune 500 / 100+ agent contact center, want the full AI stack (virtual agents + real-time coaching + QA + analytics), have budget for $60K-$150K/yr + 3-6 month implementation, and value unified platform over best-of-breed.
+
+**When NOT to pick**: Budget under $60K/yr, team under 100 agents, need fast deployment (→ Balto), primarily need post-call sales analytics (→ Gong), or want transparent pricing and public API docs.
+
+---
+
+## Momentum
+
+For deep platform coverage (all modules, pricing, integrations, workflow automation), use `/sales-momentum`.
+
+**Positioning**: AI revenue orchestration platform — sits between conversation intelligence (Gong, Chorus) and CRM (Salesforce) as an "action layer." Not primarily a note-taker — Momentum's core value is automating CRM updates, workflow triggers, and Slack routing from call data. The optional CI add-on ($30/user/mo) adds its own meeting recording/transcription capability.
+
+**Pricing (2026-04)**: Business $69/user/mo + CI add-on $30/user/mo = $99/user/mo for recording + orchestration. Transformation $99/user/mo + CI add-on = $129/user/mo. Enterprise custom. Annual contracts. Startup plan: 50% discount for <10 GTM headcount.
+
+**API**: REST API with `X-API-Key` auth. 100 requests per 15-minute window. OpenAPI spec available. API access must be enabled by Momentum support (not self-serve). Docs at docs.momentum.io.
+
+**CRM**: Salesforce only (bi-directional, real-time). No HubSpot, Pipedrive, or other CRM support.
+
+**Call sources**: Zoom, Google Meet, MS Teams, Cisco Webex (direct recording via CI add-on), or ingest from Gong, Chorus, Dialpad, Aircall, Orum, Salesloft, Outreach.
+
+**Key differentiators**: MEDDIC Autopilot (auto-extracts qualification fields to Salesforce), Slack Deal Rooms (auto-created per opportunity), AI Signals (deal risk detection from calls), SmartClips (auto-generated video snippets), Deep Research (cross-deal AI analysis, usage-based credits), Approvals (complex approval workflows in Slack).
+
+**Limitations**: Salesforce-only (no other CRM), CI add-on is separate cost, API access not self-serve, rescheduled meetings need manual steps, acquired by Salesforce Feb 2026 (product roadmap may change).
+
+**When to pick**: You're on Salesforce, want automated CRM updates from calls without manual data entry, and value workflow orchestration (Slack routing, deal rooms, approvals) as much as call analytics. Works with or without Gong — CI add-on provides recording if you don't have a separate tool.
+
+**When NOT to pick**: Not on Salesforce, need standalone conversation analytics (→ Gong), budget-constrained and primarily need transcription (→ Fathom/Fireflies), or evaluating CI tools without needing CRM automation.
+
+---
+
+## Observe.AI
+
+For deep platform coverage (all modules, API endpoints, pricing tiers, CCaaS integration, QA scorecard design), use `/sales-observe-ai`.
+
+**Positioning**: Enterprise contact center intelligence platform — 100% Auto QA, real-time Agent Copilot, Coaching Copilot, and AI virtual agents (VoiceAI/ChatAI). Targets enterprise contact centers with 100-100,000 agents. 350+ customers including DoorDash, Accolade, DailyPay, Signify Health. Historically strongest in post-call QA analytics — real-time Agent Copilot is a newer capability.
+
+**Pricing (2026-04)**: No public pricing — all five tiers require "Talk to sales." Estimated $100-500/user/mo based on review sites. Tiers: VoiceAI Agents, Real-time AI, Post-interaction AI, Enterprise Advanced, Enterprise Unlimited. Annual contracts. No free tier or trial.
+
+**API**:
+- Docs: `https://api-docs.observe.ai/` (Redoc, JS-rendered — partial access)
+- Type: REST
+- Base URL: `https://api.observe.ai/v1`
+- Auth: Bearer token (issued by account admin, enterprise-gated)
+- Rate limits: Per-endpoint (exact numbers not public), 429 with exponential backoff
+- Key endpoints:
+  - `GET /v1/interactions` — list interactions with date range filtering
+  - `GET /v1/interactions/{id}/transcript` — speaker-labeled transcript
+  - `GET /v1/interactions/{id}/evaluation` — QA scores and coaching moments
+- Caveats: Transcripts not instant (minutes to hours lag), evaluations arrive later than transcripts, cursor-based pagination
+
+**Integrations**: 250+ integrations. CCaaS: Five9 (deepest), Amazon Connect, Talkdesk, Avaya, 8x8, Aircall, Twilio, UJET, 3CLogic. CRM: Salesforce. Data: S3, Amplitude. Knowledge: Confluence, Bloomfire.
+
+**Known issues (from G2/Capterra reviews)**:
+- Transcription accuracy: degrades with accents, non-native English, background noise, overtalk
+- Speaker attribution errors: agent statements misattributed to customer and vice versa
+- Call segmentation: long calls split into shorter segments, losing full context for QA
+- Complex implementation: 3-6 month deployment timeline
+- Opaque pricing: custom enterprise quotes only
+- Navigation/UX: default dates not set to most recent, not all inbound calls appear
+
+**Selection notes**:
+- **Pick Observe.AI when**: 100+ agent enterprise contact center, need 100% auto QA to replace manual sampling, want a platform that can grow from QA into real-time guidance and AI agents, budget supports $100-500/user/mo, 3-6 month implementation timeline acceptable
+- **Avoid Observe.AI when**: Team under 50 agents (→ Enthu.AI), primary need is real-time during-call coaching (→ Balto), budget under $100/user/mo, need fast deployment in weeks (→ Enthu.AI or Balto), or want transparent pricing
+
+---
+
+## NICE CXone
+
+For deep platform coverage (all modules, API endpoints, pricing tiers, WFM, QM, Salesforce integration), use `/sales-nice-cxone`.
+
+**Positioning**: Full CCaaS platform — not a standalone note-taker or conversation intelligence tool, but includes built-in recording, quality management, and interaction analytics as part of the contact center platform. Only relevant if you're evaluating CXone as your CCaaS and want to understand its recording/analytics capabilities vs buying a separate CI tool.
+
+**Pricing (2026-04)**: Six tiers from $71-$209/agent/mo. Voice recording available from Voice Agent ($94), screen recording from Essential Suite ($135), AI analytics from Complete Suite ($209). Annual contracts, 15-25% negotiable on multi-year.
+
+**Recording capabilities**:
+- Voice recording and storage (Voice Agent+ tiers)
+- Screen recording alongside voice (Essential Suite+)
+- Digital interaction recording (Digital Agent+)
+- Media Playback APIs for programmatic access to recordings
+
+**Analytics capabilities**:
+- Interaction Analytics — linguistic analysis on 100% of interactions (topic detection, sentiment, compliance)
+- AI-driven sentiment analysis and trend discovery (Complete Suite)
+- Real-Time Data APIs for custom dashboards
+- Data Extraction APIs for external BI tools
+
+**API**: 16 REST API groups including Recording APIs, Interaction Analytics APIs, and Media Playback APIs. OAuth2/Access Key/OIDC auth. Developer portal at developer.niceincontact.com.
+
+**CRM**: Deep Salesforce integration (bi-directional Data Cloud, Agent for Salesforce workspace).
+
+**Limitations**: Not a standalone CI/note-taker. No methodology-based call scoring (MEDDPICC/SPIN). No coaching moment detection or smart playlists. Reporting is widely cited as hard to use. AI Copilot can cause UI freezes. For dedicated conversation intelligence on top of CXone, layer Observe.AI, Balto, or Cresta.
+
+**When to consider**: You're building or running a CXone contact center and evaluating whether its built-in recording + QM is sufficient, or whether you need to add a dedicated CI tool on top.
+
+**When NOT to pick for CI**: Don't buy CXone just for call recording/analytics — it's a full CCaaS platform. If you need standalone conversation intelligence for a sales team, use Gong, Fireflies, Fathom, or a dedicated CI tool instead.
+
+---
+
+## Talkdesk
+
+For deep platform coverage (all modules, API endpoints, pricing tiers, WFM, QM, Salesforce integration), use `/sales-talkdesk`.
+
+**Positioning**: Full CCaaS platform — not a standalone note-taker or conversation intelligence tool, but includes built-in recording, quality management, AI analytics, and virtual agents as part of the contact center platform. Only relevant if you're evaluating Talkdesk as your CCaaS and want to understand its recording/analytics capabilities vs buying a separate CI tool.
+
+**Pricing (2026-04)**: Four tiers from $85-$225/agent/mo. Voice recording on Voice Essentials+ ($105), screen recording on Elite ($165), AI analytics as paid add-on on any tier. 3-year contracts required. AI features (Autopilot, CoPilot, Navigator, Interaction Analytics) all require separate quotes — total costs typically 20-60% above base price.
+
+**Recording capabilities**:
+- Voice recording and storage (Voice Essentials+)
+- Screen recording alongside voice (Elite)
+- Digital interaction recording (Digital Essentials+)
+- Explore API for asynchronous historical report extraction (5-min delay)
+- Live API for real-time metrics via SSE streaming
+
+**Analytics capabilities**:
+- Interaction Analytics — linguistic analysis on 100% of interactions (paid add-on)
+- AI CoPilot — real-time agent guidance during calls (paid add-on)
+- Quality Management — evaluation forms, scoring, coaching workflows (Elite+)
+- Navigator — GenAI-powered routing with topic detection (paid add-on)
+
+**API**: 23 REST API specs including Live API (SSE streaming), Explore API (historical reports), Core API. OAuth 2.0 auth (Client Credentials/JWT/Auth Code). Regional base URLs: US `api.talkdeskapp.com`, EU `api.talkdeskapp.eu`, CA `api.talkdeskappca.com`. API access restricted to enterprise customers and AppConnect partners.
+
+**CRM**: Deep Salesforce integration (CTI + Service Cloud Voice BYOT, Omni-Channel routing). 60+ total integrations.
+
+**Limitations**: Not a standalone CI/note-taker. No methodology-based call scoring (MEDDPICC/SPIN). All AI features are paid add-ons. No predictive dialer. Support tickets average 3-4 days. Call quality issues reported (dropped calls, crackling audio). Reporting has steep learning curve. For dedicated QA overlay, use Observe.AI (which integrates natively with Talkdesk), Balto, or Cresta.
+
+**When to consider**: You're building or running a Talkdesk contact center and evaluating whether its built-in recording + QM is sufficient, or whether you need to add a dedicated CI tool on top. Talkdesk deploys faster than NICE CXone for mid-market teams.
+
+**When NOT to pick for CI**: Don't buy Talkdesk just for call recording/analytics — it's a full CCaaS platform. If you need standalone conversation intelligence for a sales team, use Gong, Fireflies, Fathom, or a dedicated CI tool instead.
+
+---
+
+---
+
+### Verint (Da Vinci AI Bots)
+
+**What**: Enterprise CX automation platform with Exact Transcription Bot (80+ languages), Wrap Up Bot (auto call summaries), Quality Bot (100% automated QA scoring), and Coaching Bot (real-time agent guidance). Not a standalone meeting note-taker — this is contact center conversation intelligence built into Verint's WEM platform. Acquired Calabrio Feb 2026.
+
+**Transcription**: Exact Transcription Bot — market-leading accuracy per Verint, 80+ languages/dialects, customized models per customer. Speech & text analytics on top of transcripts.
+
+**API**: Developer portal with API key auth. REST APIs for interaction export, user provisioning, KPI management. Webhooks for event notification. Community REST SDK (.NET). API docs behind authenticated portal.
+
+**CRM sync**: Salesforce via EliteConnect (makes recordings searchable by Salesforce fields, playback within Salesforce). 500+ adaptors across 300 vendors.
+
+**Pricing**: Enterprise custom — no public pricing. Estimated $100-500/user/month.
+
+**Best for CI**: Large contact centers (500+ agents) that need transcription, QA scoring, and real-time coaching as an integrated suite across any CCaaS platform. Not appropriate for standalone sales meeting recording.
+
+**When NOT to pick for CI**: Don't buy Verint for sales team meeting recording — it's an enterprise contact center platform. Use Gong, Fathom, or Fireflies for sales CI. If you just need QA scoring, Observe.AI or Balto are more focused. If midmarket, use Calabrio ONE (now Verint's midmarket brand).
+
+---
+
+### Convin
+
+**What**: AI-powered contact center conversation intelligence platform with 100% automated QA scoring, Real-Time Assist agent coaching, AI Phone Call agent (outbound voicebot), and integrated LMS. Not a standalone meeting note-taker — this is contact center QA and coaching built on Convin's proprietary LLM. Based in Bengaluru, India. G2 rated 4.7/5.
+
+**Transcription**: Proprietary LLM with 70+ language support. Custom model tuning available per customer. Known limitation: speaker diarization (agent vs customer) struggles on mono recordings and with certain accents.
+
+**API**: No public API. All integrations through 30+ pre-built connectors (8x8, Amazon Connect, Avaya, Aircall, Bright Pattern, etc.) or custom integration requests (~3-day turnaround).
+
+**CRM sync**: Close CRM confirmed. Other CRM connectors likely available but not confirmed on accessible integration pages.
+
+**Pricing**: Custom/quote-based. No published per-agent rates. Free tier exists with limited features.
+
+**Best for CI**: B2C contact centers (50-1000+ agents) wanting QA + coaching + voicebot + LMS in one vendor, especially with APAC presence or multilingual needs. Strongest in healthcare, banking, BPO, insurance.
+
+**When NOT to pick for CI**: Don't buy Convin for sales team meeting recording — it's a contact center QA platform. Use Gong, Fathom, or Fireflies for sales CI. If you only need automated QA scoring, Observe.AI or Enthu.AI may be simpler. If you need the fastest real-time agent prompts, Balto (<200ms) is purpose-built.
+
+---
+
+### Uniphore
+
+**What**: Enterprise conversation intelligence platform with real-time agent assist (U-Assist), automated QA (100% of interactions), CSATai predictive satisfaction scoring, and Emotion AI multimodal sentiment detection. Not a standalone meeting note-taker — this is contact center conversation analytics built on Uniphore's Business AI Cloud architecture. Also includes ActionIQ CDP for marketing AI. HQ: Palo Alto. Founded 2008.
+
+**Transcription**: Proprietary AI transcription across voice, chat, and email. Multi-language support. Emotion AI adds voice tone analysis on top of text NLP.
+
+**API**: No public API documentation. X-Platform has extensible API capabilities behind enterprise auth. Request API access during contract negotiation.
+
+**CRM sync**: Salesforce (AppExchange listing), Zendesk, Oracle. CCaaS integrations: Cisco, Avaya, Genesys Cloud CX, Amazon Connect, Five9, Twilio, tcn.
+
+**Pricing**: Custom enterprise — estimated ~$35/agent base + ~$1,500/integration fee + platform fee. Free trial available (1,000 calls).
+
+**Best for CI**: Large contact centers (500+ agents) needing conversation intelligence + real-time coaching + predictive CSAT + emotion detection as an integrated overlay on any CCaaS. Regulated industries needing on-prem/sovereign deployment (Zero Data AI).
+
+**When NOT to pick for CI**: Don't buy Uniphore for sales team meeting recording — it's an enterprise contact center AI platform. Use Gong, Fathom, or Fireflies for sales CI. If you only need automated QA, Observe.AI or MaestroQA are more focused. If you only need real-time agent coaching, Balto is faster (<200ms) and cheaper. If mid-market (<200 agents), the enterprise pricing and deployment complexity isn't justified.
+
+---
+
+## Modjo
+
+For deep platform coverage (all modules, API endpoints, webhook automation, CRM auto-fill, pricing breakdown, known issues), use `/sales-modjo`.
+
+**Positioning**: EU-native revenue intelligence — the GDPR-compliant alternative to Gong. All data hosted in France (AWS Paris). 22,000+ users. Positions as 20-30% cheaper than Gong with simpler setup and all-inclusive pricing (onboarding included). AI call scoring, CRM auto-fill (claims 90% of fields), deal intelligence, conversation library, Ask Modjo AI, customizable AI agents, and MCP server.
+
+**Pricing (2026-04)**: ~€99/user/mo (~$1,300/user/yr). Listener licenses free (managers, leadership). 15-seat minimum. Annual contracts only. Onboarding: €2,000-€5,000 one-time (included in subscription). No free trial, no free plan. First-year TCO for 15 seats: ~€19,820-€22,820.
+
+**API**:
+- Docs: `https://api.modjo.ai/v1/` (Swagger/OpenAPI at `/v1/swagger.json`)
+- Type: REST
+- Base URL: `https://api.modjo.ai/v1/`
+- Auth: API key via `X-API-KEY` header (Administrator/Manager permissions)
+- Rate limits: Not publicly documented — implement exponential backoff
+- Key endpoints:
+  - `POST /v1/calls` — Upload a call (recording URL or signed URL for direct upload)
+  - `POST /v1/calls/exports` — Export call data with filters (v2 beta)
+  - `GET /v1/users` — List users (paginated, max 100/page)
+  - `POST /v1/users/bulk` — Create users
+  - `DELETE /v1/users` — Delete users
+  - `GET /v1/teams` — List teams
+- Webhooks: `call_summarized`, `call_transcript_deleted`, `call_recording_deleted` — HMAC-SHA256 signature verification
+
+**CRM sync**: Salesforce (native, bi-directional), HubSpot (native + Chrome extension), Pipedrive, Zoho, Sellsy, Microsoft Dynamics. Auto-fills CRM fields from conversation content. Notes, summaries, topics, tags logged to CRM activity records.
+
+**Integrations**: 23 phone systems (Aircall, RingCentral, Ringover, Talkdesk, Five9, CloudTalk, 3CX, etc.), 6 video (Google Meet, Teams, Zoom, Demodesk), Slack, Outreach, Salesloft.
+
+**Best for**: European sales teams (15+ reps) that need Gong-class conversation intelligence with EU data sovereignty. Teams where GDPR compliance is non-negotiable. Organizations wanting all-inclusive pricing without platform fees or onboarding surcharges.
+
+**When NOT to pick**: Don't pick Modjo if you need the deepest enterprise analytics (Gong's tracker tuning, forecasting module, and Engage sequences are more mature). Don't pick if your team is US-based with no EU data requirements — US-hosted alternatives may offer better value. Not suitable for teams under 15 reps due to minimum commitment. No free trial means you can't self-serve evaluate — require a demo.
+
+---
+
+## Verbit
+
+For deep platform coverage (all modules, API endpoints, pricing tiers, compliance certifications, education/legal use cases), use `/sales-verbit`.
+
+**Positioning**: Enterprise AI+human transcription, captioning, and accessibility platform. Hybrid approach: proprietary Captivate ASR engine + professional human reviewers for 99%+ accuracy. Target verticals: higher education (ADA/WCAG compliance, LMS integration), legal (depositions, court proceedings), media (subtitles, dubbing), and corporate/government. Not a meeting note-taker or conversation intelligence tool — this is enterprise batch/live transcription and captioning. 2,500+ customers. Subsidiary VITAC handles broadcast captioning.
+
+**Pricing (2026-04)**: Self-Service $29/mo (20 hrs AI-only transcription, ~$1.45/hr). Enterprise custom (~$33K-$75K/yr negotiated annually). No mid-market tier between self-service and enterprise. Human review, custom ASR models, and compliance certifications require Enterprise.
+
+**API**:
+- Docs: `https://verbit.readme.io/docs/getting-started`
+- Type: REST
+- Base URL: `https://api.verbit.co/api/`
+- Auth: OAuth 2.0 Bearer JWT (24hr expiry) via `POST https://users.verbit.co/api/v1/auth`, or API key for Post-Production
+- Rate limits: Not published — implement conservative throttling
+- Five API modules:
+  - **Insights API (Gen.V)** — summaries, keywords, quizzes, chapters from transcripts
+  - **Live Booking API** — book live captioning sessions (Zoom, Teams, RTMP, WebSocket)
+  - **Post-Production API** — upload recorded audio/video for batch transcription
+  - **Caption Control API** — manage active live sessions
+  - **Search API** — build searchable indexes across transcript/caption assets
+
+**Webhooks**: Not documented in public API docs. Poll job status for completion.
+
+**Integrations**: Zoom, Microsoft Teams, Panopto, Kaltura, Brightcove, Vimeo, YouTube, JW Player; LMS: Blackboard (Anthology), Canvas; Cloud: AWS, Dropbox, Box, Google Drive; Events: Cvent; Streaming: RTMP, WebSocket, Signiant.
+
+**Compliance**: ADA, WCAG 2.0 AA, CVAA, SOC 2, ISO 27001, HIPAA (Enterprise), GDPR.
+
+**Known issues (from G2/Capterra reviews)**:
+- ASR punctuation/grammar errors: unnecessary spaces, run-on sentences, missed capitalization
+- Speaker diarization: speakers grouped or split incorrectly
+- UI/UX: clunky interface, features hard to find, steep onboarding
+- No mid-market pricing: $29/mo to ~$33K/yr with nothing between
+- Non-English accuracy: lower quality in some languages, slower turnaround
+
+**Selection notes**:
+- **Pick Verbit when**: You need human-verified transcription accuracy (99%+) for compliance (legal, education, healthcare), you process high volumes (100+ hrs/mo), you need live captioning for events/lectures with ADA compliance, or you need deep LMS integration (Blackboard, Canvas)
+- **Avoid Verbit when**: Budget is a primary constraint (→ Sonix at $10/hr or Rev AI at $0.25/min), you need a sales meeting note-taker with CRM integration (→ Fathom, Gong, Fireflies), you're mid-market with no enterprise budget (→ Sonix or TranscribeMe), or you only need AI transcription without human review (→ Sonix, Otter)
+
+---
+
+## Cirrus Insight
+
+For deep platform coverage (all modules, API endpoints, pricing breakdown, sync troubleshooting, known issues), use `/sales-cirrus-insight`.
+
+**Positioning**: Salesforce-native sales productivity platform with bolt-on AI — not a standalone note-taker, but includes Conversation Intelligence, Meeting AI, and Live Coaching as add-on modules alongside its core email/calendar/task sync to Salesforce. Only relevant if you're already on Salesforce and want CRM sync + meeting intelligence in one vendor. Modular pricing means you buy only the features you need.
+
+**Pricing (2026-04)**: Modular per-feature per-user/mo. Conversation Intelligence modules: Meeting AI $13/user/mo, Meeting Transcription $15-$8.50/hr (volume-tiered), Live Coaching $40-$28.50/hr (volume-tiered). Core modules: Sidebar $11, Email Sync $5, Calendar Sync $11, Scheduling $7, Smart Scheduler $20, Email Blast $12, Buyer Signals $10. Annual billing saves 20%.
+
+**API**:
+- Base URL: `https://api.cirrusinsight.com`
+- Auth: org-level `key_id` (UUID) — no OAuth, no API key header
+- Only one endpoint: Calendar Scheduling views (GET calendarviews by email)
+- No transcript download API
+- Webhooks for meeting booked/rescheduled/canceled
+- Must be admin-enabled (disabled by default)
+
+**CRM**: Salesforce-native (bi-directional sync, mirrors SF configuration — page layouts, custom objects, record types, validation rules). Also supports HubSpot (secondary).
+
+**Integrations**: Gmail, Outlook/O365, Zoom, Teams, Chrome, Pardot, Marketo, DocuSign, Zapier.
+
+**Known issues (from G2/Capterra reviews)**:
+- Sync reliability: top complaint — email/calendar sync breaks, requires extension reinstall
+- Plugin stability: sidebar fails to load after browser restarts
+- Authentication: frequent disconnects requiring reauthentication
+- Email Blast: campaign function errors on large lists
+- Version downgrade: new product version removed features from legacy version
+- UI bugs: subscription-expired false positives
+- Support: not proactive, multiple outreaches needed
+
+**Selection notes**:
+- **Pick Cirrus Insight CI when**: You're already on Salesforce and want email sync + meeting intelligence from one vendor, modular pricing fits your budget, and you value Salesforce-native data mirroring
+- **Avoid Cirrus Insight CI when**: You need a dedicated note-taker with rich API (→ Fathom, Fireflies, Gong), you need transcript download for data pipelines (no API), you need standalone CI without Salesforce dependency, or sync reliability is a dealbreaker
+
+---
+
+## People.ai (now Backstory)
+
+For deep platform coverage (activity capture, deal intelligence, MCP integration, pricing, known issues), use `/sales-people-ai`.
+
+**Positioning**: Revenue intelligence / activity capture platform — automatically captures every email, call, and meeting, associates with CRM records, and provides deal intelligence and pipeline health analytics. Rebranded to Backstory on April 21, 2026. Enterprise-focused (CROs, VPs of Sales, RevOps). 100K+ daily users. Customers include NVIDIA, OpenAI, Red Hat, AMD, Zscaler.
+
+**What it captures**: Activity metadata — email sent/received, meetings held, call duration, attendees, Slack messages. Does NOT record or transcribe calls. For call recording and transcription, pair with Gong, Fathom, or another CI tool.
+
+**Pricing**: Enterprise-only, no public pricing, no free tier. Custom quotes. Market estimates: $50-100+/user/month.
+
+**API**: REST API (Python library `peopleai-api` on PyPI). API docs not publicly accessible. MCP integration (Feb 2026) exposes revenue intelligence to Claude, ChatGPT, Copilot (Enterprise tier).
+
+**CRM**: Salesforce (primary, bi-directional), Microsoft Dynamics, Oracle. Multi-CRM support across geographies.
+
+**Integrations**: Gmail, Outlook, Zoom, Teams, Slack, Salesforce AppExchange.
+
+**Known issues (from G2/Capterra reviews)**:
+- Salesforce sync delays: activity data can take 24-48 hours to process
+- Contact matching: activities associate with wrong records when CRM email data is outdated
+- Adoption: low team utilization — reps unsure how to use insights for their role
+- Reporting: limited customization, role-specific views insufficient
+- No call recording or transcription — activity metadata only
+
+**Selection notes**:
+- **Pick People.ai when**: CRM data quality is your top pain (reps don't log), you need activity-backed pipeline visibility, you run multiple CRMs (Salesforce + Dynamics), or you want to feed AI agents via MCP
+- **Avoid People.ai when**: You need call recording/transcription (→ Gong, Fathom), you need a lightweight Salesforce overlay (→ Scratchpad, Weflow), budget is a constraint (enterprise pricing only), or you're not on Salesforce/Dynamics/Oracle
+
+---
+
+## Level AI
+
+For deep platform coverage (all modules, API details, InstaScore QA setup, integration guides, coaching workflows, pricing breakdown, known issues), use `/sales-level-ai`.
+
+**Positioning**: Contact center intelligence platform powered by Naviant semantic AI — combines 100% auto QA (InstaScore), real-time agent assist (AgentGPT), VoC analytics (iCSAT), screen recording, and AI virtual agents. Targets mid-market to enterprise contact centers (100-1,000+ agents) in healthcare, financial services, insurance, retail. 2023 Gartner Cool Vendor.
+
+**Key differentiator**: Semantic intelligence — intent-based analysis, not keyword matching. Understands what customers mean rather than matching surface-level phrases.
+
+**Pricing**: Custom enterprise pricing. Estimated ~$185/agent/month (no public tiers).
+
+**Core modules**:
+- **InstaScore** — 100% auto QA scoring against custom scorecards with QA-GPT model
+- **AgentGPT** — real-time knowledge surfacing and next-best-action during calls
+- **VoC analytics** — iCSAT (inferred satisfaction), sentiment, intent detection, trends
+- **Agent screen recording** — desktop capture alongside call audio for coaching
+- **AI Virtual Agent** — automated voice/chat handling with escalation
+
+**CCaaS integrations**: Zendesk, Five9, Freshworks, Kustomer, Vonage, Twilio, Amazon Connect, UJET, Talkdesk, Genesys, LivePerson, LiveChat, Dialpad
+
+**CRM**: Salesforce (AppExchange listing)
+
+**API**: Exists but not publicly documented. GraphQL-based. Enterprise-gated — request spec during contract negotiation.
+
+**Known issues**:
+- Call ingestion delayed up to 24 hours — same-day monitoring unreliable
+- InstaScore accuracy requires calibration — language barriers affect scoring
+- Sentiment analysis misclassifies neutral conversations
+- No public API docs or self-serve developer access
+
+**Selection notes**:
+- **Pick Level AI when**: Mid-market contact center (100-1,000 agents), want combined QA + real-time assist in one platform, value semantic intelligence over keyword matching, industries with nuanced customer intent (healthcare, insurance, financial services)
+- **Avoid Level AI when**: Under 50 agents (→ Enthu.AI), need same-day call monitoring (ingestion delays), need 5,000+ agent enterprise scale (→ Observe.AI, Cresta, NICE CXone), need transparent pricing or self-serve API, primary need is real-time-only coaching (→ Balto)
+
+---
+
+## ExecVision (Mediafly Coach360)
+
+For deep platform coverage (integrations, coaching workflows, migration guidance), use `/sales-execvision`.
+
+**Positioning**: Coaching-first conversation intelligence — the platform is built around translating call insights into structured coaching plans, not just surfacing analytics. Acquired by Mediafly in 2022, now Coach360 inside Revenue360 suite. 59+ native integrations (38 dialers, 9 conferencing, 6 CRMs). Targets mid-market to enterprise sales teams and contact centers.
+
+**Pricing (2026-04)**: Not public — bundled in Mediafly Revenue360 suite. Historical: ~$100-185/user/month. Annual contracts, custom quotes only. No free tier. API access is enterprise-gated.
+
+**API**: Exists but not publicly documented. No public base URL, SDK, or developer portal. Request API specification during contract negotiation. Reportedly RESTful with a sandbox environment for development.
+
+**Key modules**: Call recording (multi-source ingestion), transcription, conversation intelligence (smart alerts, keyword tracking), coaching plans (AI-recommended), performance dashboards (rep self-review, team comparison), conversation library (clip sharing, playlists), scorecards, QA & compliance.
+
+**CRM integrations**: Salesforce, HubSpot, Pipedrive, Microsoft Dynamics, SAP — bidirectional sync (pull deal context, push call metadata and coaching outcomes).
+
+**Known issues**:
+- Filter UI difficult to use (top G2 complaint) — build saved presets for common queries
+- Acquired product — roadmap uncertainty, no standalone purchasing
+- No public API docs or self-serve developer access
+- No AI roleplay or methodology scoring (MEDDIC/BANT/SPICED)
+
+**Selection notes**:
+- **Pick ExecVision when**: Coaching-first use case (structured coaching plans, not just call dashboards), wide dialer/telephony footprint (38+ integrations), existing Mediafly customer, enablement/L&D team driving the buy
+- **Avoid ExecVision when**: Need deal intelligence and pipeline forecasting (→ Gong), need affordable CI for small team (→ Rafiki $19/mo, Avoma $19/mo), need public API for custom integrations, need standalone product without suite bundling, need real-time agent assist (→ Balto)
+
+---
+
+## MaxIQ (EchoIQ)
+
+For deep platform coverage (all modules, AI agents, CRM sync, pipeline and forecasting features), use `/sales-maxiq`.
+
+**Positioning**: AI-native revenue intelligence platform — EchoIQ is the CI module inside MaxIQ's unified revenue journey platform (InspectIQ pipeline + ForecastIQ forecasting + SuccessIQ CS). First CI tool to use usage-based pricing (not per-seat). Positions as "CI that tells you what conversations mean for your number, not just what was said." Backed by Dell Technologies Capital and Intel Capital ($7.8M seed, March 2025). Customers include Snowflake, Commvault, VAST Data.
+
+**Pricing (2026-04)**: Usage-based — pay per conversation captured and intelligence delivered. No public pricing tiers. Startup Program: free for 1 year. EchoIQ freemium: 30 days or 100 hours free. No per-seat licensing — reported >95% adoption rates vs industry 60-70%.
+
+**API**: No public API documentation. Custom APIs, webhooks, and Zapier integrations available. Specific endpoints, auth methods, and rate limits not documented — request during contracting.
+
+**CRM sync**: Salesforce (bi-directional, real-time), HubSpot (bi-directional, confirm feature parity). Auto-populates opportunity notes, MEDDIC fields, next steps from calls.
+
+**Integrations**: Zoom, Microsoft Teams, Google Calendar, Gmail, Google Drive, Office 365, Slack, Zapier, webhooks.
+
+**9 AI Agents**: NoteTaker (links conversations to deals), Radar (keyword/competitor monitoring), Summarizer (meeting briefs), Coach (methodology review), Taskmaster (tasks from conversations), Watchdog (pipeline monitoring), Forecaster (real-time win likelihood), Revenue Planner (forecast aggregation), Deal Mapper (buying group mapping).
+
+**Known issues (from G2 reviews, 34 reviews)**:
+- Learning curve for teams transitioning from traditional CI tools
+- Limited self-service custom reporting and dashboarding
+- Some features listed are "in active development" — verify availability
+- No public API documentation — automation limited to Zapier/webhooks
+- SuccessIQ (CS module) not yet launched
+
+**Selection notes**:
+- **Pick MaxIQ when**: You want CI tied to pipeline and forecast (not just a call library), usage-based pricing aligns with your team structure (especially if many reps are low-call-volume), you need conversation → deal → forecast intelligence in one platform, startup program gives free evaluation year
+- **Avoid MaxIQ when**: Need mature ecosystem with hundreds of integrations (→ Gong), need public API for custom integrations, team requires battle-tested product with years of market presence, need dedicated coaching depth (→ Gong + Allego), or need contact center QA (→ Observe.AI, NICE CXone)
+
+---
+
+## KUDO
+
+For deep platform coverage (all modules, pricing tiers, widget embedding, interpreter marketplace, comparison with Interprefy/Wordly/JotMe), use `/sales-kudo`.
+
+**Positioning**: Enterprise real-time interpretation platform — not a traditional note-taker or conversation intelligence tool, but the go-to platform for multilingual meetings and events requiring live speech translation or human interpretation. Combines AI Speech Translation (60+ languages, automated, 24/7) with a marketplace of 12,000+ professional interpreters (200+ languages including sign languages). Only relevant if you need real-time multilingual interpretation at enterprise scale — conferences, global sales kickoffs, multilingual board meetings.
+
+**Pricing (2026-04)**: Four tiers — Pro (75 hrs), ProPlus, ProPlatinum, Enterprise (1,000+ hrs). All custom-quoted, usage-based (duration + number of languages). No self-serve purchase. All languages same price regardless of rarity. Pay-as-you-go option for ad-hoc events.
+
+**API**: No public REST API. Only the Widget Auto-Floor API — uses `Window.postMessage()` for iframe ↔ host page communication. Sends `floorMute: true/false` to tell the host page when to mute floor audio as attendees select language channels. No programmatic meeting creation, transcript access, or data export.
+
+**Integrations**: Microsoft Teams (native app), Zoom (Marketplace integration), any web platform (embeddable iframe widget). Supports Webex, BlueJeans, Hopin, On24, Bizzabo, Goldcast via widget. No CRM sync. No Zapier/Make.
+
+**Compliance**: SOC 2 Type 2 (4th consecutive year), ISO/IEC 27001:2022, AWS-hosted.
+
+**Known issues (from G2 reviews)**:
+- Audio delays during interpretation — network latency between speaker, cloud, and interpreter
+- Pricing opaque for smaller/frequent meeting use cases — built for enterprise events, not daily standups
+- Learning curve for the Interpreter Console
+
+**Selection notes**:
+- **Pick KUDO when**: Enterprise-scale multilingual events (100+ attendees, 3+ languages), need human interpreters for rare languages or certified accuracy, need SOC 2/ISO 27001 compliance, hosting on any platform (widget embeds anywhere)
+- **Avoid KUDO when**: You need a meeting note-taker with transcripts and CRM sync (→ Fathom, Gong, Fireflies), you need budget-friendly daily meeting translation (→ JotMe $10/mo, Jamy $15/mo), you need transcription/analytics (KUDO provides translation, not transcription), or you need a developer API for automation
+
+---
+
+## Interprefy
+
+For deep platform coverage (all modules, pricing, API, integration methods, comparison with KUDO/Wordly/Interactio), use `/sales-interprefy`.
+
+**Positioning**: Enterprise multilingual communication platform — not a traditional note-taker or conversation intelligence tool, but the go-to platform for organizations needing Remote Simultaneous Interpretation (RSI), AI speech translation, and live captions across 80+ meeting and event platforms. Combines AI-powered speech translation (80+ languages) with a global network of 6,000+ professional interpreters (spoken + sign language). Four integration methods: Inject (into audio feed), Widget (sidebar panel), Virtual Cable (no AV changes), Agent (auto-join as participant). Only relevant if you need real-time multilingual interpretation at enterprise scale.
+
+**Pricing (2026-04)**: 100% custom-quoted. Three models: hourly rates (meetings/webinars), daily rates (5+ hour events), 12-month plans (min 10 hours bundled). Three modules: Platform (per-minute), Professional Services (hourly), Interpreters. No public dollar amounts. Claims up to 75% cost reduction vs on-site interpretation.
+
+**API**: REST API v2 (`/api/v2/`). JWT auth for management (events, sessions, users, login tokens). Static token auth for client-side (RTC sessions, booking emails). Supports event creation, session management, and login token generation. Does NOT support: interpreter booking, AI translation toggle, recording management — those are UI-only.
+
+**Integrations**: 80+ platforms — MS Teams, Zoom, Google Meet, Webex, RingCentral/BlueJeans, ON24, Livestorm, 6Connex, Bizzabo, Accelevents, Airmeet. No CRM sync. No Zapier/Make.
+
+**Compliance**: ISO 27001, end-to-end encryption, interpreter NDAs.
+
+**Known issues (from G2 reviews, knowledge base)**:
+- Widget iframe embedding requires HTML/coding skills — may need a developer
+- Audio delays during interpretation (1-3s AI, 3-7s human)
+- Bluetooth headset issues on Android mobile app
+- Integration with some event platforms not always smooth
+
+**Selection notes**:
+- **Pick Interprefy when**: Enterprise multilingual events needing flexible integration (80+ platforms), need both AI and human interpretation, ISO 27001 required, want programmatic event/session management via REST API, using less common event platforms where KUDO widget may not embed
+- **Avoid Interprefy when**: You need a meeting note-taker with transcripts and CRM sync (→ Fathom, Gong, Fireflies), you need budget-friendly daily translation (→ JotMe $10/mo, Jamy $15/mo), you need iPaaS automation like Zapier/Make (Interprefy has none), or you need webhook-driven integrations
+
+---
+
+## Aviso AI
+
+For deep platform coverage (all modules, forecasting types, MIKI AI agent, CRM writeback, pricing, known issues), use `/sales-aviso`.
+
+- **Positioning**: End-to-end AI revenue operating system — AI-native forecasting (100+ variables, 98%+ accuracy claim), conversation intelligence with emotion analysis, relationship intelligence (Aviso Graph), MIKI AI Chief of Staff with 30+ agentic workflows, pipeline inspection, deal acceleration, sales engagement, and customer success in one platform
+- **Best for**: Enterprise orgs with complex revenue models (splits, overlays, consumption-based, multi-CRM) who want unified forecasting + CI + deal intelligence in a single AI-first platform
+- **Pricing**: Custom enterprise only (~$1,000/user/yr, comparable to Clari). No free tier, no self-serve. Annual/multi-year contracts. Request pilot with YOUR historical data to validate accuracy claims
+- **CI capabilities**: Transcription, 6-emotion analysis (happiness, sadness, anger, surprise, fear, disgust), semantic similarity for objection detection, talk-listen ratios, patience insights, question rates. Coaching metrics per rep and per call. Ingests from Zoom, Teams, Meet, Webex, RingCentral, BlueJeans, GoTo, Moxo
+- **API surface**: No public API. No documented webhooks. No MCP server. Aviso Connect is an enterprise integration layer configured by Aviso's team (no public docs/endpoints/auth). CRM Writeback is the primary automated data flow
+- **Integrations**: 9 CRMs (Salesforce deepest, HubSpot certified, Dynamics 365, Freshworks, Oracle, SAP, Zoho, Pipedrive), Slack/Teams alerts, 6sense + LinkedIn Sales Navigator intent, Outreach + Salesloft engagement, Gainsight + Totango CS, Snowflake/Redshift/BigQuery warehouse
+- **Known issues**: Three forecast types (AI/Sales/Adjusted) cause confusion — users don't know which to trust. Dashboard customizations may revert after updates. Deal scoring lacks transparency (100+ variables but no explanation). No public API means no custom integrations without Aviso's team. Enterprise pricing only — SMB teams priced out
+- **Selection notes**: Choose Aviso over Gong when forecasting depth matters more than CI depth. Choose Aviso over Clari when you need consumption-based or splits/overlays forecasting and multi-CRM consolidation. Choose Gong over Aviso when conversation intelligence and public API are priorities. Choose Clari over Aviso when structured forecast governance and executive reporting are priorities
+- **Avoid Aviso when**: You need a public API for custom integrations (→ Gong), you're SMB/mid-market with budget constraints (→ Fathom, tl;dv, Fireflies), you primarily need CI without forecasting (→ Gong, Modjo), you need self-serve setup without implementation support
+
+---
+
+## Bolt-on conversation intelligence (not standalone)
+
+- **CallMiner Eureka** — Enterprise omnichannel conversation analytics with 100% automated QA, compliance monitoring, and agent coaching. Not a meeting note-taker — analyzes voice, chat, email, and social interactions post-call for quality and compliance. Regulated industries (healthcare, finance, collections). No public pricing (~$102K/yr avg). Covered by `/sales-callminer`
+- **Cirrus Insight** — Salesforce-native sales productivity with Meeting AI, Conversation Intelligence, and Live Coaching modules; covered by `/sales-cirrus-insight`
+- **monday Notetaker** — native AI meeting recording inside monday.com work management/CRM, action items → board items; covered by `/sales-monday-notetaker`
+- **Outreach Kaia** — inside Outreach sales engagement platform; covered by `/sales-outreach-io`
+- **Revenue.io Conversation Intelligence** — inside Revenue.io (Orchestrate tier); covered by `/sales-revenue-io`
+- **Salesloft Conversations** — inside Salesloft; covered by `/sales-salesloft`
+- **ZoomInfo Chorus** — inside ZoomInfo; covered by `/sales-zoominfo`
+- **Seismic Meeting Intelligence** — inside Seismic; covered by `/sales-seismic`

@@ -25,11 +25,19 @@ export interface Preferences {
   googledrive: string;
 }
 
+export interface SupportRequest {
+  name: string;
+  phone: string;
+  email: string;
+  message: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class ApiService {
   private baseUrl = environment.apiUrl;
+  private readonly localFallbackApiBases = ['http://localhost:5079/api', 'http://localhost:6003/api'];
 
   constructor(private http: HttpClient) {}
 
@@ -40,8 +48,27 @@ export class ApiService {
   }
 
   getUnitTypes(): Observable<UnitType[]> {
-    return this.http.get<UnitType[]>(`${this.baseUrl}/unittypes`).pipe(
-      catchError(() => this.http.get<UnitType[]>('assets/data/unitTypes.json'))
+    const normalize = (unitTypes: any[]): UnitType[] =>
+      unitTypes.map(u => ({
+        id: u.id ?? u.Id ?? 0,
+        unitTypeNameEn:
+          u.unitTypeNameEn ??
+          u.unit_type_name_en ??
+          u.UnitTypeNameEn ??
+          u.unit_type_name ??
+          u.unitTypeName ??
+          u.UnitTypeName ??
+          '',
+        unitTypeNameFr: u.unitTypeNameFr ?? u.unit_type_name_fr ?? u.UnitTypeNameFr ?? '',
+      }));
+
+    // Support both API route conventions used across environments.
+    return this.http.get<any[]>(`${this.baseUrl}/unittypes`).pipe(
+      map(normalize),
+      catchError(() => this.http.get<any[]>(`${this.baseUrl}/unitype`).pipe(
+        map(normalize),
+        catchError(() => this.http.get<any[]>('assets/data/unitTypes.json').pipe(map(normalize)))
+      ))
     );
   }
 
@@ -90,6 +117,34 @@ export class ApiService {
   getPreferences(): Observable<Preferences> {
     return this.http.get<Preferences>(`${this.baseUrl}/preferences`).pipe(
       catchError(() => this.http.get<Preferences>('assets/data/preferences.json'))
+    );
+  }
+
+  sendSupportEmail(request: SupportRequest): Observable<void> {
+    const primary = `${this.baseUrl}/support/email`;
+    const fallbackEndpoints = this.localFallbackApiBases
+      .map(base => `${base}/support/email`)
+      .filter(endpoint => endpoint !== primary);
+
+    return this.postSupportEmailWithFallback([primary, ...fallbackEndpoints], request);
+  }
+
+  private postSupportEmailWithFallback(endpoints: string[], request: SupportRequest): Observable<void> {
+    const [current, ...rest] = endpoints;
+
+    return this.http.post<void>(current, request).pipe(
+      catchError(err => {
+        if (rest.length === 0) {
+          throw err;
+        }
+
+        // Retry alternate local API endpoints on connection/CORS/not found failures.
+        if (err?.status === 0 || err?.status === 404 || err?.status === 405) {
+          return this.postSupportEmailWithFallback(rest, request);
+        }
+
+        throw err;
+      })
     );
   }
 
@@ -168,11 +223,11 @@ export class ApiService {
   }
 
   createApartment(apartment: Apartment): Observable<Apartment> {
-    return this.http.post<Apartment>(`${this.baseUrl}/apartments`, apartment);
+    return this.http.post<Apartment>(`${this.baseUrl}/apartments`, this.toApartmentApiPayload(apartment));
   }
 
   updateApartment(id: string, apartment: Apartment): Observable<void> {
-    return this.http.put<void>(`${this.baseUrl}/apartments/${id}`, apartment);
+    return this.http.put<void>(`${this.baseUrl}/apartments/${id}`, this.toApartmentApiPayload(apartment));
   }
 
   deleteApartment(id: string): Observable<void> {
@@ -200,5 +255,25 @@ export class ApiService {
 
   deleteApartmentImage(imageId: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/ApartmentImages/${imageId}`);
+  }
+
+  /**
+   * Compatibility payload: supports both snake_case and camelCase API contracts.
+   * This prevents silent data loss when frontend and backend are on different versions.
+   */
+  private toApartmentApiPayload(apartment: Apartment): Record<string, unknown> {
+    const featureIds = apartment.feature_ids ?? [];
+    const images = apartment.images ?? [];
+
+    return {
+      ...apartment,
+      // New API contract
+      unit_type_name: apartment.unit_type_name,
+      feature_ids: featureIds,
+      images,
+      // Backward-compatible aliases
+      unitTypeName: apartment.unit_type_name,
+      featureIds,
+    };
   }
 }

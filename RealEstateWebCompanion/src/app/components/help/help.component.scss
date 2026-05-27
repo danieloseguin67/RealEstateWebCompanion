@@ -140,5 +140,30 @@
     &:active {
       transform: scale(0.98);
     }
+
+    &:disabled {
+      background-color: #8cbfdf;
+      cursor: not-allowed;
+      transform: none;
+    }
+  }
+
+  .submit-status {
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: 4px;
+    font-size: 0.95rem;
+
+    &.success {
+      background-color: #eaf8ef;
+      color: #1f7a3a;
+      border: 1px solid #b7e2c5;
+    }
+
+    &.error {
+      background-color: #fdeeee;
+      color: #b93232;
+      border: 1px solid #f3c4c4;
+    }
   }
 }

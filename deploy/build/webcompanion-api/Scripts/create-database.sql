@@ -180,6 +180,62 @@ BEGIN
 END
 GO
 
+IF NOT EXISTS (SELECT 1 FROM [preferences] WHERE [PreferenceKey] = 'smtpHost')
+BEGIN
+    INSERT INTO [preferences] ([PreferenceKey], [PreferenceValue])
+    VALUES ('smtpHost', '');
+END
+GO
+
+IF NOT EXISTS (SELECT 1 FROM [preferences] WHERE [PreferenceKey] = 'smtpPort')
+BEGIN
+    INSERT INTO [preferences] ([PreferenceKey], [PreferenceValue])
+    VALUES ('smtpPort', '587');
+END
+GO
+
+IF NOT EXISTS (SELECT 1 FROM [preferences] WHERE [PreferenceKey] = 'smtpUser')
+BEGIN
+    INSERT INTO [preferences] ([PreferenceKey], [PreferenceValue])
+    VALUES ('smtpUser', '');
+END
+GO
+
+IF NOT EXISTS (SELECT 1 FROM [preferences] WHERE [PreferenceKey] = 'smtpPassword')
+BEGIN
+    INSERT INTO [preferences] ([PreferenceKey], [PreferenceValue])
+    VALUES ('smtpPassword', '');
+END
+GO
+
+IF NOT EXISTS (SELECT 1 FROM [preferences] WHERE [PreferenceKey] = 'smtpUseTls')
+BEGIN
+    INSERT INTO [preferences] ([PreferenceKey], [PreferenceValue])
+    VALUES ('smtpUseTls', 'true');
+END
+GO
+
+IF NOT EXISTS (SELECT 1 FROM [preferences] WHERE [PreferenceKey] = 'smtpFromEmail')
+BEGIN
+    INSERT INTO [preferences] ([PreferenceKey], [PreferenceValue])
+    VALUES ('smtpFromEmail', '');
+END
+GO
+
+IF NOT EXISTS (SELECT 1 FROM [preferences] WHERE [PreferenceKey] = 'smtpFromName')
+BEGIN
+    INSERT INTO [preferences] ([PreferenceKey], [PreferenceValue])
+    VALUES ('smtpFromName', 'Web Companion Support');
+END
+GO
+
+IF NOT EXISTS (SELECT 1 FROM [preferences] WHERE [PreferenceKey] = 'smtpToEmail')
+BEGIN
+    INSERT INTO [preferences] ([PreferenceKey], [PreferenceValue])
+    VALUES ('smtpToEmail', 'daniel@seguin.dev');
+END
+GO
+
 -- -----------------------------------------------
 -- Seed: features (toggles)
 -- -----------------------------------------------

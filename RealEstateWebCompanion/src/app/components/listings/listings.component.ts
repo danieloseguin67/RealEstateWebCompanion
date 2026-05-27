@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, NgZone, OnInit } from '@angular/core';
 import { AgGridAngular } from 'ag-grid-angular';
 import { ColDef, GridOptions } from 'ag-grid-community';
 import { FormsModule } from '@angular/forms';
@@ -68,24 +68,31 @@ export class ListingsComponent implements OnInit {
       pinned: 'left'
     },
     { 
+      colId: 'actions',
       headerName: 'Actions', 
       width: 200,
       suppressSizeToFit: true,
       cellRenderer: (params: any) => {
         const container = document.createElement('span');
+        container.className = 'actions-cell';
 
         const editBtn = document.createElement('button');
+        editBtn.type = 'button';
         editBtn.textContent = 'Edit';
         editBtn.className = 'edit-btn';
-        editBtn.addEventListener('click', () => this.editRow(params.node));
+        editBtn.addEventListener('click', () => {
+          this.ngZone.run(() => this.editRow(params.node));
+        });
 
         const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
         removeBtn.textContent = 'Remove';
         removeBtn.className = 'remove-btn';
-        removeBtn.addEventListener('click', () => this.removeRow(params.node));
+        removeBtn.addEventListener('click', () => {
+          this.ngZone.run(() => this.removeRow(params.node));
+        });
 
         container.appendChild(editBtn);
-        container.appendChild(document.createTextNode(' '));
         container.appendChild(removeBtn);
         return container;
       },
@@ -185,13 +192,30 @@ export class ListingsComponent implements OnInit {
   
   gridOptions: GridOptions = {
     pagination: true,
-    paginationPageSize: 50
+    paginationPageSize: 50,
+    onCellClicked: (event: any) => {
+      // Fallback for AG Grid click swallowing: ensure action buttons always fire.
+      if (event?.colDef?.colId !== 'actions') return;
+
+      const target = event.event?.target as HTMLElement | null;
+      if (!target) return;
+
+      if (target.closest('.edit-btn')) {
+        this.ngZone.run(() => this.editRow(event.node));
+        return;
+      }
+
+      if (target.closest('.remove-btn')) {
+        this.ngZone.run(() => this.removeRow(event.node));
+      }
+    }
   };
 
   constructor(
     private dataService: DataService,
     private authService: AuthService,
-    private apiService: ApiService
+    private apiService: ApiService,
+    private ngZone: NgZone
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -214,7 +238,9 @@ export class ListingsComponent implements OnInit {
     
     // Load available unit types
     this.dataService.unitTypes$.subscribe(types => {
-      this.availableUnitTypes = types.map(t => t.unitTypeNameEn);
+      this.availableUnitTypes = (types as any[])
+        .map(t => t.unitTypeNameEn ?? t.unit_type_name ?? t.unitTypeName ?? t.UnitTypeNameEn ?? '')
+        .filter((name): name is string => !!name && !!name.trim());
     });
   }
 
@@ -251,7 +277,12 @@ export class ListingsComponent implements OnInit {
   }
 
   addRow(): void {
-    const newId = 'apt_' + String(this.rowData.length + 1).padStart(3, '0');
+    const maxNum = this.rowData.reduce((max, apt) => {
+      const match = apt.id?.match(/^apt_(\d+)$/);
+      const num = match ? parseInt(match[1], 10) : 0;
+      return num > max ? num : max;
+    }, 0);
+    const newId = 'apt_' + String(maxNum + 1).padStart(3, '0');
     const newRow: Apartment = {
       id: newId,
       title: '',
@@ -311,10 +342,13 @@ export class ListingsComponent implements OnInit {
       if (index !== -1) {
         this.rowData[index] = updated;
         this.gridApi?.setGridOption('rowData', this.rowData);
+        // Reuse the same working save pipeline as the main Save button.
+        this.dirtyApartmentIds.add(updated.id);
       }
-      this.apiService.updateApartment(updated.id, updated).subscribe({
-        error: (err) => console.error('Failed to save apartment to API:', err)
-      });
+
+      this.closeEditModal();
+      this.saveAllChanges();
+      return;
     }
     this.closeEditModal();
   }

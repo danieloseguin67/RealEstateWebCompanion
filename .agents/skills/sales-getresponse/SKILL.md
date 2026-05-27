@@ -1,0 +1,163 @@
+---
+name: sales-getresponse
+description: "GetResponse platform help — email marketing, autoresponders, visual marketing automation workflows, conversion funnels, landing pages, webinars (live and on-demand), course creator, premium newsletters, SMS marketing, web push notifications, live chat, signup forms, popups, website builder, e-commerce integrations (Shopify, WooCommerce), contact scoring, segmentation, paid ads, AI content generator, transactional email (MAX only), REST API. Use when autoresponders aren't triggering, automation workflows behave unexpectedly, conversion funnel drop-off is too high, webinar or course setup isn't working, contacts aren't syncing or segmenting correctly, or something in GetResponse isn't doing what you expect. Do NOT use for general email marketing strategy (use /sales-email-marketing), general funnel strategy (use /sales-funnel), general webinar strategy (use /sales-webinar), general course/membership strategy (use /sales-membership), cross-platform deliverability (use /sales-deliverability), or connecting tools generically (use /sales-integration)."
+argument-hint: "[describe what you need help with in GetResponse]"
+license: MIT
+version: 1.0.0
+tags: [sales, email-marketing, marketing-automation, platform]
+github: "https://github.com/GetResponse"
+---
+# GetResponse Platform Help
+
+Help the user with GetResponse platform questions — from email campaigns and autoresponders through automation workflows, conversion funnels, webinars, course creation, and API usage.
+
+## Step 1 — Gather context
+
+
+If `references/learnings.md` exists, read it first for accumulated knowledge.
+
+Ask the user:
+
+1. **What area do you need help with?**
+   - A) Email campaigns — newsletters, broadcasts, A/B testing
+   - B) Autoresponders — time-based automated email sequences
+   - C) Marketing automation — visual workflow builder
+   - D) Conversion funnels — lead magnet, sales, webinar funnels
+   - E) Landing pages — builder, templates, forms
+   - F) Webinars — live, on-demand, integration with funnels
+   - G) Courses — course creator, student management, premium newsletters
+   - H) SMS marketing — campaigns, automation
+   - I) Web push notifications — setup, campaigns
+   - J) Live chat — widget setup, automation
+   - K) E-commerce — Shopify/WooCommerce, abandoned cart, product recommendations
+   - L) Contacts — import, segmentation, scoring, list management
+   - M) Integrations — API, webhooks, Zapier, native connectors
+   - N) Analytics & reporting — campaign performance, automation stats
+   - O) Something else — describe it
+
+2. **What plan are you on?**
+   - A) Free
+   - B) Starter ($19/mo)
+   - C) Marketer ($59/mo)
+   - D) Creator ($69/mo)
+   - E) MAX / Enterprise
+   - F) Not sure / considering GetResponse
+
+3. **What's the goal?**
+   - A) Set something up for the first time
+   - B) Optimize or improve existing setup
+   - C) Troubleshoot a problem
+   - D) Migrate from another platform
+
+**If the user's request already provides most of this context, skip directly to the relevant step.** Lead with your best-effort answer using reasonable assumptions (stated explicitly), then ask only the most critical 1-2 clarifying questions at the end.
+
+## Step 2 — Route or answer directly
+
+If the question is about general strategy rather than GetResponse-specific config, hand off to the appropriate skill:
+
+| Question type | Hand off |
+|---|---|
+| Email marketing strategy (not GetResponse-specific) | "This is an email marketing strategy question — run: `/sales-email-marketing {your question}`" |
+| Funnel strategy across tools | "This is a funnel strategy question — run: `/sales-funnel {your question}`" |
+| Webinar selling strategy | "This is a webinar strategy question — run: `/sales-webinar {your question}`" |
+| Course/membership strategy | "This is a membership strategy question — run: `/sales-membership {your question}`" |
+| Lead scoring design | "This is a lead scoring strategy question — run: `/sales-lead-score {your question}`" |
+| SPF/DKIM/DMARC setup across tools | "This is an email deliverability question — run: `/sales-deliverability {your question}`" |
+| Connecting GetResponse to CRM via Zapier | "This is a tool integration question — run: `/sales-integration {your question}`" |
+| Live chat strategy across tools | "This is a live chat strategy question — run: `/sales-live-chat {your question}`" |
+
+Otherwise, answer directly with GetResponse-specific guidance below.
+
+## Step 3 — GetResponse platform reference
+
+**Read `references/platform-guide.md`** for detailed module documentation, pricing, integrations, and data model.
+
+*You no longer need the platform guide details — focus on the user's specific situation.*
+
+## Step 4 — Actionable guidance
+
+### Getting started checklist
+
+1. **Create your first campaign (list)** — this is your mailing list, not an email send
+2. **Import contacts** — CSV upload, copy/paste, or API. Map fields to GetResponse custom fields
+3. **Authenticate your domain** — Settings > Email Addresses > add and verify sending domain (SPF/DKIM)
+4. **Build a signup form** — embed on your website for new subscriber capture
+5. **Create a welcome autoresponder** — Day 0 email for immediate delivery on subscription
+6. **Design your first newsletter** — use the drag-and-drop editor or AI content generator
+7. **Set up automation** (Marketer+) — start with a welcome series workflow template
+8. **Connect e-commerce** — if Shopify/WooCommerce, install the native integration for abandoned cart and product sync
+9. **Enable tracking** — add GetResponse tracking snippet to your website for page visit tracking in automations
+10. **Set up contact scoring** (Marketer+) — define scoring rules for engagement actions
+
+### Key metrics to track
+
+| Metric | Where in GetResponse | Benchmark |
+|---|---|---|
+| Open rate | Newsletter statistics | 20-25% |
+| Click rate | Newsletter statistics | 2-5% |
+| Autoresponder completion | Autoresponder statistics | 40-60% |
+| Automation conversion | Workflow statistics | Varies by goal |
+| Landing page conversion | Landing page statistics | 20-40% |
+| Webinar attendance rate | Webinar statistics | 30-50% of registrants |
+| Contact score distribution | Contacts > Scoring | Healthy: bell curve |
+| Unsubscribe rate | Newsletter statistics | Below 0.3% |
+
+## Gotchas
+
+*Best-effort from research — review these, especially items about plan-gated features and integration gotchas that may be outdated.*
+
+1. **"Campaign" means mailing list, not email send.** In GetResponse, a "campaign" is a contact list. An email send is a "newsletter." This terminology confuses every new user and causes API mistakes — `POST /v3/campaigns` creates a list, not an email. If someone asks how to "create a campaign," clarify whether they mean a list or an email.
+2. **Starter plan only allows 1 automation workflow.** Marketing automation requires Marketer plan ($59/mo) for unlimited workflows. Users on Starter who need multiple automations will hit this wall quickly. Autoresponders (time-based sequences) are unlimited on all plans — use those as a workaround for simple sequences.
+3. **Contact scoring requires Marketer plan.** Contact scoring is not available on Free or Starter. If a user on Starter asks about lead scoring, recommend upgrading or using tag-based manual scoring as a workaround.
+4. **Pricing is based on peak subscriber count.** GetResponse bills based on the highest contact count during the billing period, not the average. A temporary spike (e.g., importing a large list for cleaning) can push you into a higher tier for the entire month. Clean lists before importing.
+5. **Transactional email is MAX-only.** Unlike Brevo or SendGrid, GetResponse's transactional email (order confirmations, password resets) is only available on the MAX/Enterprise plan. Users on Starter/Marketer/Creator who need transactional email must use a separate provider.
+
+- **Self-improving**: If you discover something not covered here, append it to `references/learnings.md` with today's date.
+
+## Related skills
+
+- `/sales-email-marketing` — Email marketing strategy across platforms (not GetResponse-specific)
+- `/sales-funnel` — Funnel strategy and optimization across tools
+- `/sales-webinar` — Webinar selling strategy across tools
+- `/sales-membership` — Course and membership strategy across tools
+- `/sales-lead-score` — Lead scoring model design across tools
+- `/sales-live-chat` — Live chat strategy across tools
+- `/sales-deliverability` — Email deliverability (SPF/DKIM/DMARC, warmup, sender reputation)
+- `/sales-transactional-email` — Transactional email delivery (provider comparison)
+- `/sales-integration` — Connect GetResponse to CRM, e-commerce, and other tools
+- `/sales-checkout` — Checkout optimization (for GetResponse sales funnels)
+- `/sales-do` — Not sure which skill to use? The router matches any sales objective to the right skill. Install: `npx skills add sales-skills/sales --skill sales-do`
+
+## Examples
+
+### Example 1: Building a welcome automation workflow
+**User says**: "How do I create a welcome series in GetResponse that sends 5 emails over 2 weeks to new subscribers?"
+**Skill does**: Clarifies plan (need Marketer+ for automation, but Starter can use autoresponders). For Marketer+: walks through creating an automation workflow with Subscribe trigger → Send email (welcome) → Wait 1 day → Send email (value prop) → Wait 2 days → Send email (social proof) → Wait 3 days → Send email (offer) → Wait 3 days → Send email (urgency). For Starter: sets up autoresponders on Day 0, 1, 3, 6, 10. Includes subject line suggestions and exit conditions.
+**Result**: Complete welcome sequence with timing, content strategy, and platform-specific setup steps
+
+### Example 2: Setting up an e-commerce abandoned cart flow
+**User says**: "I have a Shopify store. How do I set up abandoned cart emails in GetResponse?"
+**Skill does**: Walks through: 1) Install GetResponse Shopify integration from Shopify App Store. 2) Map products and customers. 3) Create automation workflow: trigger on "Cart abandoned" event → Wait 1 hour → Send email (cart reminder with product images) → Wait 24 hours → If not purchased → Send email (social proof + urgency) → Wait 48 hours → If not purchased → Send email (discount code). Includes dynamic product block setup and promo code generation.
+**Result**: 3-step abandoned cart automation with Shopify product data and dynamic content
+
+### Example 3: Creating a webinar funnel
+**User says**: "How do I set up a webinar funnel in GetResponse to generate leads and sell my course?"
+**Skill does**: Walks through conversion funnel setup: 1) Create webinar funnel template. 2) Design registration landing page with webinar details. 3) Set up confirmation + reminder autoresponder sequence (immediate confirmation, 24hr reminder, 1hr reminder). 4) Configure live webinar with polls, CTA buttons pointing to course sales page. 5) Post-webinar automation: Send recording to attendees, special offer to non-attendees, follow-up sequence with testimonials and urgency. 6) Connect to course creator for enrollment.
+**Result**: End-to-end webinar funnel from registration through course sale
+
+## Troubleshooting
+
+### Emails going to spam
+**Symptom**: Newsletters landing in spam or promotions tab
+**Cause**: Domain not authenticated, sending to unengaged contacts, or content triggers
+**Solution**: 1) Verify SPF/DKIM authentication in Settings > Email Addresses. 2) Stop sending to contacts who haven't opened in 90+ days — use engagement-based segmentation. 3) Reduce image-to-text ratio. 4) Avoid spam trigger words. 5) If on MAX, request a dedicated IP and warm it up. See `/sales-deliverability` for cross-platform guidance.
+
+### Automation workflow not triggering
+**Symptom**: Contacts enter the automation but don't receive messages
+**Cause**: Workflow not published, trigger conditions too narrow, or time zone mismatch
+**Solution**: 1) Verify the workflow status is "Published" (not Draft). 2) Check the trigger conditions — ensure contacts match the entry criteria. 3) Verify wait steps are set correctly (hours vs days). 4) Check that contacts have email consent and aren't suppressed. 5) Review the workflow log for specific contacts to see where they stopped.
+
+### Contact scoring not working
+**Symptom**: All contacts showing 0 score or scores not updating
+**Cause**: Scoring rules not configured, plan doesn't include scoring, or tracking not installed
+**Solution**: 1) Verify you're on Marketer plan or higher (Starter/Free doesn't include scoring). 2) Check Settings > Contact Scoring — scoring rules must be explicitly defined (e.g., +10 for open, +20 for click, +50 for purchase). 3) For page visit scoring, ensure the GetResponse tracking snippet is installed on your website. 4) Scoring recalculates periodically — wait for the next refresh cycle.

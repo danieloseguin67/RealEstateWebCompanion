@@ -96,6 +96,25 @@ switch ($Target) {
         }
 
         robocopy $ngDist $appOut /MIR /NP /NFL /NDL /NJH /NJS | Out-Null
+
+        # Deployment safety net: ensure appversion.json is always available under assets/data.
+        $appVersionSource = Join-Path $webAppSrc "src\assets\data\appversion.json"
+        $appVersionDestDir = Join-Path $appOut "assets\data"
+        $appVersionDest = Join-Path $appVersionDestDir "appversion.json"
+
+        if (-not (Test-Path $appVersionDest)) {
+            if (Test-Path $appVersionSource) {
+                New-Item -ItemType Directory -Path $appVersionDestDir -Force | Out-Null
+                Copy-Item $appVersionSource $appVersionDest -Force
+                Write-Ok "appversion.json copied to staged artifact: $appVersionDest"
+            } else {
+                Write-Fail "Missing required appversion.json at source: $appVersionSource"
+                exit 1
+            }
+        } else {
+            Write-Ok "appversion.json present in staged artifact."
+        }
+
         Write-Ok "WebCompanionApp staged -> $appOut"
     }
 

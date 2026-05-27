@@ -94,6 +94,13 @@
   }
 }
 
+::ng-deep .actions-cell {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  pointer-events: auto;
+}
+
 ::ng-deep .remove-btn {
   background-color: #e74c3c;
   color: white;

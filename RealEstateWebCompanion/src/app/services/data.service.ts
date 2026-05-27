@@ -61,7 +61,7 @@ export class DataService {
 
   loadUnitTypes(): void {
     const stored = this.storageService.getItem<UnitType[]>('unitTypes');
-    if (stored) {
+    if (stored && stored.length > 0) {
       this.unitTypesSubject.next(stored);
     } else {
       this.apiService.getUnitTypes().subscribe(data => {
